@@ -166,10 +166,10 @@ monsterMove:
   jr .monsterMoveY ; otherwise try x
   
 initMonster:
-  ld a, 16
+  ld a, 3 * 8
   ld [wMonsterX], a
   ld [wMonsterNextX], a
-  ld a, 64
+  ld a, 3 * 8
   ld [wMonsterY], a
   ld [wMonsterNextY], a
   ld a, 4
