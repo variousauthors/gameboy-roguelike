@@ -19,8 +19,27 @@ Main:
 
   nop
 
+  ; update graphics
+  call playerUpdateSprite
+  call monsterUpdateSprite
+
+  ; process intents
+
   call playerBump
   jr z, .rollbackMove
+
+  call playerAttack
+  jr z, .commitAttack
+
+  ; call lootCorpse
+  ; jr z, .loopCorpse
+
+  jr .commitMove
+
+.commitAttack
+  call playerCommitAttack
+
+  jr .rollbackMove
 
 .commitMove
   ld a, [wPlayerNextX]
@@ -37,9 +56,6 @@ Main:
   ld [wPlayerNextY], a
 
 .doneUpdate
-
-  ; update graphics
-  call playerUpdateSprite
 
   ; update intents
   call UpdateKeys
@@ -89,39 +105,13 @@ ClearOam:
   dec b
   jp nz, ClearOam
 
-  ; init player data
-  ld a, 16
-  ld [wPlayerX], a
-  ld [wPlayerNextX], a
-  ld a, 128
-  ld [wPlayerY], a
-  ld [wPlayerNextY], a
+  ; init entities
+  call initPlayer
+  call initMonster
 
-  ; init player sprite
-  ld hl, _OAMRAM
-  ld a, [wPlayerY]
-  ld b, 16
-  add a, b
-  ld [hli], a
-  ld a, [wPlayerX]
-  ld b, 8
-  add a, b
-  ld [hli], a
-  ld a, 0 ; sprite
-  ld [hli], a
-  ld a, 0 ; attributes
-  ld [hli], a
-
-  ; init monster sprite
-  ld hl, _OAMRAM + 4
-  ld a, 64 + 16
-  ld [hli], a
-  ld a, 16 + 8
-  ld [hli], a
-  ld a, 4 ; sprite
-  ld [hli], a
-  ld a, 0 ; attributes
-  ld [hli], a
+  ; initial draw
+  call playerUpdateSprite
+  call monsterUpdateSprite
 
   ; Initialize global variables
   ld a, 0
@@ -182,3 +172,4 @@ INCLUDE "helpers.inc"
 INCLUDE "graphics.inc"
 INCLUDE "player.inc"
 INCLUDE "utilities.inc"
+INCLUDE "monsters.inc"
