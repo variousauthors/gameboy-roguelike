@@ -123,7 +123,6 @@ playerBump:
   ld a, [wPlayerNextY]
   ld c, a
   call getTileAddressByPixel
-  ld a, [hl]
   call isCollision
 
   ret

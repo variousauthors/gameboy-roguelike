@@ -14,6 +14,19 @@ wMonsterDead: db
 
 SECTION "MonstersLogic", ROM0
 
+; @return z - is collision
+monsterBump:
+  ; convert position to address
+  ; then check for wall tile
+  ld a, [wMonsterNextX]
+  ld b, a
+  ld a, [wMonsterNextY]
+  ld c, a
+  call getTileAddressByPixel
+  call isCollision
+
+  ret
+
 monsterRollbackMove: 
   ld a, [wMonsterX]
   ld [wMonsterNextX], a
@@ -40,7 +53,8 @@ monsterCommitAttack:
 
   ret
 
-  ; record intent to move toward the player
+; record intent to move toward the player
+; avoid abstacles
 monsterMove:
   ; choose shortest direction
   ld a, [wPlayerX]
@@ -70,41 +84,46 @@ monsterMove:
   jr .monsterMoveY
 
 .monsterMoveY
-  ld a, [wPlayerY]
-  ld b, a
   ld a, [wMonsterY]
+  ld c, a
+  ld a, [wPlayerY]
 
-  cp a, b
-  jr c, .down
-
-.up
-  ld b, 8
-  sub a, b
-  ld [wMonsterNextY], a
-  ret
+  cp a, c
+  jr c, .up
 
 .down
-  ld b, 8
-  add a, b
+  ld a, c
+  ld c, 8
+  add a, c
   ld [wMonsterNextY], a
   ret
+
+.up
+  ld a, c
+  ld c, 8
+  sub a, c
+  ld [wMonsterNextY], a
+  ret
+
 .monsterMoveX
-  ld a, [wPlayerX]
-  ld b, a
   ld a, [wMonsterX]
+  ld b, a
+  ld a, [wPlayerX]
 
   cp a, b
-  jr c, .right
+  jr c, .left
 
-.left
+.right
+  ld a, b
   ld b, 8
-  sub a, b
+  add a, b
   ld [wMonsterNextX], a
   ret
 
-.right
+.left
+  ld a, b
   ld b, 8
-  add a, b
+  sub a, b
   ld [wMonsterNextX], a
   ret
   

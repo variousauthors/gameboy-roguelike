@@ -33,9 +33,10 @@ getTileAddressByPixel:
   add hl, bc
   ret
 
-; a - tile
+; hl - tile address
 ; @return z if collision
 isCollision:
+  ld a, [hl]
   cp a, WALL_TILE
   ret
 

@@ -28,8 +28,8 @@ Main:
   call playerBump
   call z, playerRollbackMove
 
-  ;call monsterBump
-  ;call z, monsterRollbackMove
+  call monsterBump
+  call z, monsterRollbackMove
 
   call playerAttack
   call z, .commitAttack
