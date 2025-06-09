@@ -42,23 +42,34 @@ monsterCommitAttack:
 
   ; record intent to move toward the player
 monsterMove:
+  ; choose shortest direction
   ld a, [wPlayerX]
   ld b, a
   ld a, [wMonsterX]
-
-  cp a, b
-  jr c, .right
-
-.left
-  dec a
-  ld [wMonsterNextX], a
-  jr .doneX
-
-.right
-  inc a
-  ld [wMonsterNextX], a
-
+  sub a, b
+  jr nc, .doneX
+  cpl a
+  inc a ; neg a
 .doneX
+
+  ld c, a ; stash it away
+
+  ; choose shortest direction
+  ld a, [wPlayerY]
+  ld b, a
+  ld a, [wMonsterY]
+  sub a, b
+  jr nc, .doneY
+  cpl a
+  inc a ; neg a
+.doneY
+
+  cp a, c ; which is bigger?
+
+  jr c, .monsterMoveX
+  jr .monsterMoveY
+
+.monsterMoveY
   ld a, [wPlayerY]
   ld b, a
   ld a, [wMonsterY]
@@ -67,16 +78,36 @@ monsterMove:
   jr c, .down
 
 .up
-  dec a
+  ld b, 8
+  sub a, b
   ld [wMonsterNextY], a
   ret
 
 .down
-  inc a
+  ld b, 8
+  add a, b
   ld [wMonsterNextY], a
+  ret
+.monsterMoveX
+  ld a, [wPlayerX]
+  ld b, a
+  ld a, [wMonsterX]
 
+  cp a, b
+  jr c, .right
+
+.left
+  ld b, 8
+  sub a, b
+  ld [wMonsterNextX], a
   ret
 
+.right
+  ld b, 8
+  add a, b
+  ld [wMonsterNextX], a
+  ret
+  
 initMonster:
   ld a, 16
   ld [wMonsterX], a

@@ -26,18 +26,23 @@ Main:
   ; process intents
 
   call playerBump
-  jr z, .commitBump
+  call z, playerRollbackMove
+
+  ;call monsterBump
+  ;call z, monsterRollbackMove
 
   call playerAttack
-  jr z, .commitAttack
+  call z, .commitAttack
 
-  jr .commitMove
+  call .commitMove
+
+  jr .doneUpdate
 
 .commitAttack
   call playerCommitAttack
   call nz, monsterCommitAttack
 
-  jr .doneUpdate
+  ret
 
 .commitMove
   ld a, [wPlayerNextX]
@@ -45,18 +50,21 @@ Main:
   ld a, [wPlayerNextY]
   ld [wPlayerY], a
 
-  jr .doneUpdate
+  ld a, [wMonsterNextX]
+  ld [wMonsterX], a
+  ld a, [wMonsterNextY]
+  ld [wMonsterY], a
 
-.commitBump
-  call playerRollbackMove
+  ret
 
-  jr .doneUpdate
+  ret
 
 .doneUpdate
 
   ; update intents
   call UpdateKeys
   call playerMove
+  call nz, monsterMove
 
 .done
   jp Main

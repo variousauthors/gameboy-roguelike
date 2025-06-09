@@ -46,6 +46,7 @@ playerCommitAttack:
 
   ret
 
+; @return z - no move
 playerMove:
 .checkLeft
   ld a, [wNewKeys]
