@@ -80,6 +80,8 @@ monsterMove:
 
   cp a, c ; which is bigger?
 
+  ld d, 2
+
   jr c, .monsterMoveX
   jr .monsterMoveY
 
@@ -96,14 +98,32 @@ monsterMove:
   ld c, 8
   add a, c
   ld [wMonsterNextY], a
-  ret
+  jr .validateMoveY
 
 .up
   ld a, c
   ld c, 8
   sub a, c
   ld [wMonsterNextY], a
-  ret
+  jr .validateMoveY
+
+.validateMoveY
+  ; check if this is a valid move
+  ld c, a
+  ld a, [wMonsterX]
+  ld b, a
+  call getTileAddressByPixel
+  call isCollision
+  jr z, .downFailY
+  ret ; yes, valid move
+
+.downFailY
+  ; rollback
+  ld a, [wMonsterY]
+  ld [wMonsterNextY], a
+  dec d ; tries
+  ret z ; if we are stuck, return
+  jr .monsterMoveX ; otherwise try x
 
 .monsterMoveX
   ld a, [wMonsterX]
@@ -118,14 +138,32 @@ monsterMove:
   ld b, 8
   add a, b
   ld [wMonsterNextX], a
-  ret
+  jr .validateMoveX
 
 .left
   ld a, b
   ld b, 8
   sub a, b
   ld [wMonsterNextX], a
-  ret
+  jr .validateMoveX
+
+.validateMoveX
+  ; check if this is a valid move
+  ld b, a
+  ld a, [wMonsterY]
+  ld c, a
+  call getTileAddressByPixel
+  call isCollision
+  jr z, .downFailX
+  ret ; yes, valid move
+
+.downFailX
+  ; rollback
+  ld a, [wMonsterX]
+  ld [wMonsterNextX], a
+  dec d ; tries
+  ret z ; if we are stuck, return
+  jr .monsterMoveY ; otherwise try x
   
 initMonster:
   ld a, 16
