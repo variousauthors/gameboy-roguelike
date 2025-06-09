@@ -13,10 +13,23 @@ wPlayerX: db
 wPlayerY: db
 wPlayerNextX: db
 wPlayerNextY: db
+wPlayerWounds: db
+wPlayerHP: db
+wPlayerDead: db
 
 SECTION "PlayerLogic", ROM0
 
+playerRollbackMove:
+  ld a, [wPlayerX]
+  ld [wPlayerNextX], a
+  ld a, [wPlayerY]
+  ld [wPlayerNextY], a
+  ret
+
+; @return z - monster dead
 playerCommitAttack:
+  call playerRollbackMove
+
   ld a, [wMonsterWounds]
   inc a
   ld [wMonsterWounds], a
@@ -29,6 +42,7 @@ playerCommitAttack:
   ; monster dead
   ld a, 1
   ld [wMonsterDead], a
+  cp a, 1 ; ret z is monster dead
 
   ret
 
@@ -143,6 +157,11 @@ initPlayer:
   ld a, 128
   ld [wPlayerY], a
   ld [wPlayerNextY], a
+  ld a, 4
+  ld [wPlayerHP], a
+  ld a, 0
+  ld [wPlayerWounds], a
+  ld [wPlayerDead], a
   ret
 
 playerUpdateSprite:
@@ -156,10 +175,23 @@ playerUpdateSprite:
   ld b, 8
   add a, b
   ld [hli], a
+
   ld a, 0 ; sprite
+  ld b, a
+  ld a, [wPlayerWounds]
+  add a, b
   ld [hli], a
   ld a, 0 ; attributes
   ld [hl], a
+
+  ld a, [wPlayerDead]
+  cp a, 0
+  ret z
+
+  ; disable the sprite
+  ld a, 0
+  ld [_OAMRAM], a
+  ld [_OAMRAM + 1], a
 
   ret
 

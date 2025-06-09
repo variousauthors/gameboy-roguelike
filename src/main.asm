@@ -26,20 +26,18 @@ Main:
   ; process intents
 
   call playerBump
-  jr z, .rollbackMove
+  jr z, .commitBump
 
   call playerAttack
   jr z, .commitAttack
-
-  ; call lootCorpse
-  ; jr z, .loopCorpse
 
   jr .commitMove
 
 .commitAttack
   call playerCommitAttack
+  call nz, monsterCommitAttack
 
-  jr .rollbackMove
+  jr .doneUpdate
 
 .commitMove
   ld a, [wPlayerNextX]
@@ -49,11 +47,10 @@ Main:
 
   jr .doneUpdate
 
-.rollbackMove
-  ld a, [wPlayerX]
-  ld [wPlayerNextX], a
-  ld a, [wPlayerY]
-  ld [wPlayerNextY], a
+.commitBump
+  call playerRollbackMove
+
+  jr .doneUpdate
 
 .doneUpdate
 
