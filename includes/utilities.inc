@@ -1,12 +1,12 @@
-
-; I like the way they did the math here
+IF !DEF(UTILITIES_INC)
+DEF UTILITIES_INC EQU 1
 
 ; Convert a pixel position to a tilemap address
 ; hl = $9800 + X + Y * 32
 ; @param b: X
 ; @param c: Y
 ; @return hl: tile address
-GetTileByPixel:
+getTileAddressByPixel:
   ; First, we need to divide by 8 to convert a pixel position to a tile position.
   ; After this we want to multiply the Y position by 32.
   ; These operations effectively cancel out so we only need to mask the Y value.
@@ -32,3 +32,12 @@ GetTileByPixel:
   ld bc, $9800
   add hl, bc
   ret
+
+; a - tile
+; @return z if collision
+isCollision:
+  cp a, WALL_TILE
+  ret
+
+
+ENDC

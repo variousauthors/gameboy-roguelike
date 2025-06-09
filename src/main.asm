@@ -13,6 +13,41 @@ SECTION "Header", ROM0[$100]
 
 	ds $150 - @, 0 ; Make room for the header
 
+
+Main:
+  halt
+
+  nop
+
+  call playerBump
+  jr z, .rollbackMove
+
+.commitMove
+  ld a, [wPlayerNextX]
+  ld [wPlayerX], a
+  ld a, [wPlayerNextY]
+  ld [wPlayerY], a
+
+  jr .doneUpdate
+
+.rollbackMove
+  ld a, [wPlayerX]
+  ld [wPlayerNextX], a
+  ld a, [wPlayerY]
+  ld [wPlayerNextY], a
+
+.doneUpdate
+
+  ; update graphics
+  call playerUpdateSprite
+
+  ; update intents
+  call UpdateKeys
+  call playerMove
+
+.done
+  jp Main
+
 EntryPoint:
 	; Shut down audio circuitry
 	ld a, 0
@@ -33,10 +68,16 @@ EntryPoint:
 	ld bc, TilemapEnd - Tilemap
   call Memcopy
 
-  ; copy the player sprite
-	ld de, PlayerSprite
+  ; copy the player sprites
+	ld de, PlayerSprites
 	ld hl, $8000
-	ld bc, PlayerSpriteEnd - PlayerSprite
+	ld bc, PlayerSpritesEnd - PlayerSprites
+  call Memcopy
+
+  ; copy the monsters sprites
+	ld de, MonsterSprites
+	ld hl, $8040
+	ld bc, MonsterSpritesEnd - MonsterSprites
   call Memcopy
 
   ; clear OAM sure why not
@@ -48,14 +89,38 @@ ClearOam:
   dec b
   jp nz, ClearOam
 
+  ; init player data
+  ld a, 16
+  ld [wPlayerX], a
+  ld [wPlayerNextX], a
+  ld a, 128
+  ld [wPlayerY], a
+  ld [wPlayerNextY], a
+
   ; init player sprite
   ld hl, _OAMRAM
-  ld a, 128 + 16
+  ld a, [wPlayerY]
+  ld b, 16
+  add a, b
+  ld [hli], a
+  ld a, [wPlayerX]
+  ld b, 8
+  add a, b
+  ld [hli], a
+  ld a, 0 ; sprite
+  ld [hli], a
+  ld a, 0 ; attributes
+  ld [hli], a
+
+  ; init monster sprite
+  ld hl, _OAMRAM + 4
+  ld a, 64 + 16
   ld [hli], a
   ld a, 16 + 8
   ld [hli], a
-  ld a, 0
+  ld a, 4 ; sprite
   ld [hli], a
+  ld a, 0 ; attributes
   ld [hli], a
 
   ; Initialize global variables
@@ -69,16 +134,8 @@ ClearOam:
   ld [rIE], a
   ei
 
-Main:
-  halt
-
-  nop
-
-  call UpdateKeys
-
-  call playerMove
-
   jp Main
+
 
 SECTION "Input", ROM0
 UpdateKeys:
@@ -124,3 +181,4 @@ wNewKeys: db
 INCLUDE "helpers.inc"
 INCLUDE "graphics.inc"
 INCLUDE "player.inc"
+INCLUDE "utilities.inc"
