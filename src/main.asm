@@ -21,15 +21,16 @@ Main:
 
   ; update graphics
   call playerUpdateSprite
-  call monsterUpdateSprite
+  ; call monsterUpdateSprite
+  call monsterListUpdateSprites
 
   ; process intents
 
   call playerBump
   call z, playerRollbackMove
 
-  call monsterBump
-  call z, monsterRollbackMove
+  ; call monsterBump
+  ; call z, monsterRollbackMove
 
   call playerAttack
   call z, .commitAttack
@@ -40,7 +41,7 @@ Main:
 
 .commitAttack
   call playerCommitAttack
-  call nz, monsterCommitAttack
+  ; call nz, monsterCommitAttack
 
   ret
 
@@ -50,12 +51,11 @@ Main:
   ld a, [wPlayerNextY]
   ld [wPlayerY], a
 
-  ld a, [wMonsterNextX]
-  ld [wMonsterX], a
-  ld a, [wMonsterNextY]
-  ld [wMonsterY], a
-
-  ret
+  call monsterListCommitMoves
+  ; ld a, [wMonsterNextX]
+  ; ld [wMonsterX], a
+  ; ld a, [wMonsterNextY]
+  ; ld [wMonsterY], a
 
   ret
 
@@ -64,7 +64,8 @@ Main:
   ; update intents
   call UpdateKeys
   call playerMove
-  call nz, monsterMove
+  ; call nz, monsterMove
+  call nz, monsterListPlanMoves
 
 .done
   jp Main
@@ -112,11 +113,13 @@ ClearOam:
 
   ; init entities
   call initPlayer
-  call initMonster
+  ; call initMonster
+  call monsterListInit
 
   ; initial draw
   call playerUpdateSprite
-  call monsterUpdateSprite
+  ; call monsterUpdateSprite
+  call monsterListUpdateSprites
 
   ; Initialize global variables
   ld a, 0
@@ -178,3 +181,4 @@ INCLUDE "graphics.inc"
 INCLUDE "player.inc"
 INCLUDE "utilities.inc"
 INCLUDE "monsters.inc"
+INCLUDE "monsterList.inc"
