@@ -24,6 +24,24 @@ Memcopy:
   jp nz, Memcopy
   ret
 
+; @param de - source
+; @param hl - destination
+; @param bc - length
+Memcopy1bpp:
+  ld a, [de]
+  ld [hli], a
+
+  ; second byte same as the first
+  ld a, [de]
+  ld [hli], a
+  inc de
+
+  dec bc
+  ld a, b
+  or a, c
+  jp nz, Memcopy1bpp
+  ret
+
 turnOffLCD:
 .waitVBlank
   ld a, [rLY]

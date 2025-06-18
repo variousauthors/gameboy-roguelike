@@ -19,11 +19,34 @@ wPlayerDead: db
 
 SECTION "PlayerLogic", ROM0
 
+; z - player has no intent
+playerLacksIntent:
+  ld a, [wPlayerX]
+  ld b, a
+  ld a, [wPlayerNextX]
+  cp a, b
+  ret z
+
+  ld a, [wPlayerY]
+  ld b, a
+  ld a, [wPlayerNextY]
+  cp a, b
+  ret z
+
+  ret
+
 playerRollbackMove:
   ld a, [wPlayerX]
   ld [wPlayerNextX], a
   ld a, [wPlayerY]
   ld [wPlayerNextY], a
+  ret
+
+playerCommitMove:
+  ld a, [wPlayerNextX]
+  ld [wPlayerX], a
+  ld a, [wPlayerNextY]
+  ld [wPlayerY], a
   ret
 
 ; @return z - monster dead

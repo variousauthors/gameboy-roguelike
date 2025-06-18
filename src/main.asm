@@ -4,6 +4,10 @@ DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
 DEF BLANK_TILE EQU $08
 
+SECTION "GameState", WRAM0
+
+wPlayerTurn: db
+
 SECTION "vblank_interrupt", ROM0[$0040]
   reti
 
@@ -19,56 +23,73 @@ Main:
 
   nop
 
+  ld a, [wPlayerTurn]
+  cp a, 0
+  jr z, .updateMonster
+
+.updatePlayer
   ; update graphics
   call playerUpdateSprite
+
+  ; process intents
+
+  call playerLacksIntent
+  jr z, .doneUpdate
+
+  call playerBump
+  jr z, .rollback
+
+  call playerAttack
+  call z, playerCommitAttack
+
+  call playerCommitMove
+
+  ; pass to monster turn
+  ld a, 0
+  ld [wPlayerTurn], a
+
+  jr .doneUpdate
+
+.rollback
+  call playerRollbackMove
+  jr .doneUpdate
+
+.updateMonster
   ; call monsterUpdateSprite
   call monsterListUpdateSprites
 
   ; process intents
 
-  call playerBump
-  call z, playerRollbackMove
-
+  call monsterListBump
   ; call monsterBump
   ; call z, monsterRollbackMove
 
-  call playerAttack
-  call z, .commitAttack
-
-  call .commitMove
+  ; pass to player turn
+  ld a, 1
+  ld [wPlayerTurn], a
 
   jr .doneUpdate
 
-.commitAttack
-  call playerCommitAttack
-  ; call nz, monsterCommitAttack
-
-  ret
-
-.commitMove
-  ld a, [wPlayerNextX]
-  ld [wPlayerX], a
-  ld a, [wPlayerNextY]
-  ld [wPlayerY], a
-
-  call monsterListCommitMoves
-  ; ld a, [wMonsterNextX]
-  ; ld [wMonsterX], a
-  ; ld a, [wMonsterNextY]
-  ; ld [wMonsterY], a
-
-  ret
-
 .doneUpdate
 
+  ; plan nextturn
+
+  ld a, [wPlayerTurn]
+  cp a, 0
+  jr z, .planMonsterTurn
+.planPlayerTurn
   ; update intents
   call UpdateKeys
-  call playerMove
-  ; call nz, monsterMove
-  call nz, monsterListPlanMoves
+  ld a, [wNewKeys]
+  cp a, 0
+  jr z, Main ; no new inputs
 
-.done
+  call playerMove
   jp Main
+.planMonsterTurn
+  call monsterListPlanMoves
+  jp Main
+
 
 EntryPoint:
 	; Shut down audio circuitry
@@ -78,11 +99,11 @@ EntryPoint:
 	; Do not turn the LCD off outside of VBlank
   call turnOffLCD
 
-	; Copy the tile data
-	ld de, Tiles
+  ; copy the 1bpp stuff
+	ld de, OverworldTiles
 	ld hl, $9000
-	ld bc, TilesEnd - Tiles
-  call Memcopy
+	ld bc, OverworldTilesEnd - OverworldTiles
+  call Memcopy1bpp
 
 	; Copy the tilemap
 	ld de, Tilemap
@@ -115,6 +136,10 @@ ClearOam:
   call initPlayer
   ; call initMonster
   call monsterListInit
+
+  ; start on the player turn
+  ld a, 1
+  ld [wPlayerTurn], a
 
   ; initial draw
   call playerUpdateSprite

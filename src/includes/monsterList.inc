@@ -14,6 +14,82 @@ MonsterList:
 
 SECTION "MonsterList", ROM0
 
+monsterListBump:
+  call monsterListBumpX
+  call monsterListBumpY
+  ret
+
+monsterListBumpY:
+  ld de, wMonsterPositionNextYs
+  ld hl, wMonsterPositionXs
+  ld a, [wMonsterCount]
+  ld c, a
+.loop
+  push bc
+  ld a, [hl]
+  ld b, a
+  ld a, [de]
+  ld c, a
+
+  push hl
+
+  call getTileAddressByPixel
+  call isCollision
+
+  jr nz, .noRollback
+  ; rollback X
+  ld hl, wMonsterPositionYs
+  ld a, [hl]
+  ld [de], a
+.noRollback
+  pop hl
+  pop bc
+
+  inc de
+  inc hl
+  dec c
+  jr z, .done
+  jr .loop
+.done
+
+  ret
+
+monsterListBumpX:
+  ld de, wMonsterPositionNextXs
+  ld hl, wMonsterPositionYs
+  ld a, [wMonsterCount]
+  ld c, a
+.loop
+  push bc
+  ld a, [de]
+  ld b, a
+  ld a, [hl]
+  ld c, a
+
+  push hl
+
+  call getTileAddressByPixel
+  call isCollision
+
+  jr nz, .noRollback
+  ; rollback X
+  ld hl, wMonsterPositionXs
+  ld a, [hl]
+  ld [de], a
+.noRollback
+  pop hl
+  pop bc
+
+  inc de
+  inc hl
+  dec c
+  jr z, .done
+  jr .loop
+.done
+
+  ret
+
+
 monsterListInit:
   ld a, 15 * 8
   ld [wMonsterPositionXs], a
