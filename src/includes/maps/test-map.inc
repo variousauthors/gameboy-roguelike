@@ -3,6 +3,9 @@ DEF TEST_MAP_INC EQU 1
 
 Section "TestMap", ROM0
 
+Start: ; marks the "initial map"
+TestMap:
+  db HIGH(TestMapTileset), LOW(TestMapTileset), 
 TestMapData:
 ; this file will be generated
 INCLUDE "maps/test-map-data.inc"

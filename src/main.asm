@@ -32,21 +32,17 @@ EntryPoint:
 	; Do not turn the LCD off outside of VBlank
   call turnOffLCD
 
-  ; copy the 1bpp stuff
-  ld bc, TestMapTileset
-  call LoadMapTileset
-  /*
-	ld de, OverworldTiles
-	ld hl, $9000
-	ld bc, OverworldTilesEnd - OverworldTiles
-  call Memcopy1bpp
-  */
+  call initCurrentMap
 
+  call fullMapRedraw
+
+  /*
 	; Copy the tilemap
 	ld de, Tilemap
 	ld hl, $9800
 	ld bc, TilemapEnd - Tilemap
   call Memcopy
+  */
 
   ; clear OAM sure why not
   ld a, 0
@@ -74,4 +70,5 @@ ClearOam:
 INCLUDE "helpers.inc"
 INCLUDE "graphics.inc"
 INCLUDE "input.inc"
+INCLUDE "map-utils.inc"
 INCLUDE "maps/test-map.inc"
