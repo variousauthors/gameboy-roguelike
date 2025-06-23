@@ -125,6 +125,8 @@ getCurrentMap:
 ; @return de - address of tile map for current map
 getCurrentMapTileMap:
   call getCurrentMap
+  inc de
+  inc de ; advance past map metadata
   ret
 
 ; @return de - address of tileset for current map

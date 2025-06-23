@@ -1,8 +1,6 @@
 IF !DEF(TEST_MAP_DATA_INC)
 DEF TEST_MAP_DATA_INC EQU 1
 
-Section "TestMapData", ROM0
-
 TestMapTileMap:
   ; db 20, 18 -- all maps are 20 x 18
   db $02, $02, $02, $02, $02, $00, $03, $00, $00, $00, $00, $02, $02, $02, $00, $02, $02, $02, $02, $02
