@@ -1,26 +1,17 @@
-IF !DEF(HOUSE_1BPP_NO_GRID_BW_Y0_X0_INC)
-DEF HOUSE_1BPP_NO_GRID_BW_Y0_X0_INC EQU 1
+IF !DEF(TEST_MAP_INC)
+DEF TEST_MAP_INC EQU 1
 
-House1bppNoGridBwY0X0TileMap:
-  ; db 18, 20 -- all maps are 18w x 20h
-  db $02, $00, $00, $00, $00, $00, $00, $00, $0C, $0C, $0C, $08, $0C, $0C, $0C, $0C, $0C, $00, $02, $05
-  db $00, $05, $00, $00, $00, $05, $0C, $0C, $0B, $0B, $0B, $08, $0B, $0B, $0B, $0B, $0B, $0C, $0C, $00
-  db $00, $00, $01, $00, $02, $00, $0B, $0B, $0B, $0B, $0B, $08, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0C
-  db $02, $00, $00, $0C, $0C, $0C, $0B, $0B, $0B, $0B, $0D, $08, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B
-  db $0C, $0C, $0C, $0B, $0B, $0B, $0B, $0B, $05, $02, $00, $08, $05, $05, $05, $0B, $0B, $0B, $0B, $0B
-  db $0B, $0B, $0B, $0B, $0B, $0B, $0B, $06, $00, $00, $00, $08, $00, $00, $00, $02, $05, $06, $0B, $0B
-  db $0B, $0B, $0B, $0B, $0B, $05, $00, $00, $00, $09, $09, $08, $09, $09, $00, $00, $00, $05, $05, $05
-  db $05, $05, $06, $05, $02, $00, $00, $09, $09, $08, $08, $08, $08, $08, $09, $09, $00, $00, $05, $05
-  db $05, $05, $05, $00, $00, $00, $09, $08, $08, $00, $00, $00, $08, $08, $00, $08, $00, $05, $02, $05
-  db $05, $05, $01, $00, $00, $09, $08, $08, $00, $00, $00, $01, $00, $08, $09, $08, $00, $03, $05, $05
-  db $05, $05, $00, $00, $00, $08, $08, $08, $09, $09, $02, $00, $00, $08, $08, $08, $06, $03, $00, $05
-  db $06, $05, $00, $00, $00, $02, $08, $08, $08, $08, $09, $09, $09, $08, $08, $06, $00, $03, $05, $05
-  db $05, $05, $05, $05, $00, $00, $01, $00, $00, $02, $08, $08, $08, $08, $05, $02, $00, $06, $05, $05
-  db $05, $05, $05, $05, $00, $00, $00, $00, $00, $01, $02, $08, $08, $00, $00, $03, $00, $05, $05, $05
-  db $05, $05, $06, $05, $05, $05, $05, $05, $00, $00, $00, $00, $08, $05, $03, $03, $00, $05, $05, $05
-  db $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $00, $00, $08, $00, $03, $00, $05, $05, $05, $05
-  db $05, $05, $05, $05, $05, $05, $06, $05, $06, $05, $00, $00, $08, $05, $00, $05, $00, $05, $06, $05
-  db $06, $05, $05, $00, $05, $05, $05, $05, $05, $00, $00, $08, $08, $00, $03, $00, $06, $05, $05, $05
-House1bppNoGridBwY0X0TileMapEnd:
+Section "House1bppNoGridBwY0X0Map", ROM0
+
+Start: ; marks the "initial map"
+House1bppNoGridBwY0X0Map:
+  db HIGH(House1bppNoGridBwY0X0MapTileset), LOW(House1bppNoGridBwY0X0MapTileset), 
+House1bppNoGridBwY0X0MapData:
+; this file will be generated
+INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0-data.inc"
+
+House1bppNoGridBwY0X0MapTileset:
+db EMPTY_TILE, FLOWER_TILE, GRASS_TILE, ROAD_TILE, SIGN_TILE, TREE_ONE_TILE, TREE_TWO_TILE, WALL_TILE
+db WATER_TILE, WATER_EDGE_TILE, BRIDGE_TILE, CLIFF_TILE, CLIFF_EDGE_TILE, CAVE_TILE, UNUSED_TILE , DOOR_TILE, END_OF_TILESET
 
 ENDC

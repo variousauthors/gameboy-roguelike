@@ -1,5 +1,3 @@
-console.log(process.argc, process.argv);
-
 const IN_DIR = "./assets/prototype";
 const OUT_DIR = "./src/includes/maps";
 
@@ -13,7 +11,6 @@ const jsonsInDir = fs
 jsonsInDir.forEach((file) => {
   const fileData = fs.readFileSync(path.join(IN_DIR, file));
   const json = JSON.parse(fileData.toString());
-  console.log(json);
 
   // validate width, height is a multiple of 18x20
   assert(json.tileshigh % 18 == 0, "tileshigh is not a mulitple of 18");
@@ -22,48 +19,24 @@ jsonsInDir.forEach((file) => {
   // grid of maps
 
   const content = json.layers[0].tiles
-    .reduce((acc, tile) => {
-      // determine which submap this tile goes into with y, x and modulo
-      const i = (tile.x / 20) | 0;
-      const j = (tile.y / 18) | 0;
-      const x = tile.x % 20;
-      const y = tile.y % 18;
-
-      if (!acc[j]) acc[j] = [];
-      if (!acc[j][i]) acc[j][i] = [];
-      if (!acc[j][i][y]) acc[j][i][y] = [];
-
-      acc[j][i][y][x] = tile.tile;
-
-      return acc;
-    }, [])
-    .reduce((acc, rowOfMaps, y) => {
+    .reduce(getSubmapReducer(20, 18), [])
+    .reduce((acc, rowOfSubmaps, y) => {
       acc.push(
-        rowOfMaps.map((singleMap, x) => {
+        rowOfSubmaps.map((singleSubmap, x) => {
           const id = file.split(".")[0];
-          return {
-            filename: `${id}-y${y}-x${x}.inc`,
-            include: toIncludeName(id, y, x), // TO_SNAKE_CONSTANT_CASE
-            name: toMapName(id, y, x), // toCamelCase
-            height: 18,
-            width: 20,
-            content: singleMap
-              .map((mapRow) => {
-                return `  db ${mapRow.map(toHex).join(", ")}`;
-              })
-              .join("\n"),
-          };
+          return toMapBuilderInput(singleSubmap, id, x, y);
         })
       );
-
       return acc;
     }, [])
     .flat();
 
+  // write tilemap data
   content.forEach((mapInclude) => {
-    console.log(build(mapInclude));
-    fs.writeFileSync(`${OUT_DIR}/${mapInclude.filename}`, build(mapInclude).trim());
-
+    fs.writeFileSync(
+      `${OUT_DIR}/${mapInclude.filename}`,
+      build(mapInclude).trim()
+    );
   });
 });
 
@@ -92,8 +65,8 @@ function toIncludeName(str, y, x) {
 }
 
 function toMapName(str, y, x) {
-  const [first, ...rest] = str.split('');
-  return `${first.toUpperCase()}${camelize(rest.join(''))}Y${y}X${x}`;
+  const [first, ...rest] = str.split("");
+  return `${first.toUpperCase()}${camelize(rest.join(""))}Y${y}X${x}`;
 }
 
 function camelize(str) {
@@ -103,5 +76,38 @@ function camelize(str) {
 }
 
 function toHex(n) {
-  return `$${n.toString(16).toUpperCase().padStart(2, '0')}`
+  return `$${n.toString(16).toUpperCase().padStart(2, "0")}`;
+}
+
+function getSubmapReducer(width, height) {
+  return function assignTileToSubmap(submaps, tile) {
+    // determine which submap this tile goes into with y, x and modulo
+    const i = (tile.x / 20) | 0;
+    const j = (tile.y / 18) | 0;
+    const x = tile.x % 20;
+    const y = tile.y % 18;
+
+    if (!submaps[j]) submaps[j] = [];
+    if (!submaps[j][i]) submaps[j][i] = [];
+    if (!submaps[j][i][y]) submaps[j][i][y] = [];
+
+    submaps[j][i][y][x] = tile.tile;
+
+    return submaps;
+  };
+}
+
+function toMapBuilderInput(rawMapData, id, x, y) {
+  return {
+    filename: `${id}-y${y}-x${x}-data.inc`,
+    include: toIncludeName(id, y, x), // TO_SNAKE_CONSTANT_CASE
+    name: toMapName(id, y, x), // toCamelCase
+    height: 18,
+    width: 20,
+    content: rawMapData
+      .map((mapRow) => {
+        return `  db ${mapRow.map(toHex).join(", ")}`;
+      })
+      .join("\n"),
+  };
 }
