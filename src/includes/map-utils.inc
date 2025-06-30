@@ -92,23 +92,27 @@ LoadMapPalette:
 ; @param de - address of the tile set to load
 ; each tile set is 16 tiles long, each entry 1 byte
 ; each tile set must end with 0xFF to indicate end of tileset
-LoadMapTileset:
+; loads only the event tiles, so that odd and even tiles
+; use different halves of the palette
+LoadMapTilesetEvenTiles:
   ; iterate along bc until we hit END_OF_TILESET
   ; at each step, copy 8 bytes from some hl to VRAM
   ; TileData is aligned to 8 bytes so e is 0x00
 
-  call getCurrentMapTileset
+  call getCurrentMapTileset ; source
+  ld hl, $9000 ; destination
 
-  ; destination
-  ld hl, $9000
+  ; we copy all of the even tiles
 .loop
   ld bc, OverworldTiles;
   ld a, [de]
+
+  ; copy one tile
   cp a, END_OF_TILESET
   jr z, .done ; we hit end of tileset
 
   ; copy 1 tile
-  ld c, a ; now e is the low portion of the address of a tile
+  ld c, a ; now c is the low portion of the address of a tile
 
   ; otherwise copy 8 bytes
   REPT 8
@@ -116,13 +120,80 @@ LoadMapTileset:
     ld a, [bc]
     ld [hli], a
 
-    ; second byte same as the first
-    ld a, [bc]
+    ; second byte always $FF
+    ld a, $FF
     ld [hli], a
     inc bc
   ENDR
 
+  ; skip a tile in the source
   inc de
+  inc de
+
+  ; skip a tile in the dest (add 16)
+  ld a, $0F
+  or l
+  ld l, a
+  inc hl
+
+  jr .loop
+.done
+
+  ret
+
+; @param de - address of the tile set to load
+; each tile set is 16 tiles long, each entry 1 byte
+; each tile set must end with 0xFF to indicate end of tileset
+; loads only the odd tiles, so that odd and even tiles
+; use different halves of the palette
+LoadMapTilesetOddTiles:
+  ; iterate along bc until we hit END_OF_TILESET
+  ; at each step, copy 8 bytes from some hl to VRAM
+  ; TileData is aligned to 8 bytes so e is 0x00
+
+  call getCurrentMapTileset ; source
+  inc de ; start from odd tile
+  ld hl, $9000 ; destination
+
+  ; skip a tile in the dest (add 16)
+  ld a, $0F
+  or l
+  ld l, a
+  inc hl
+
+  ; we copy all of the even tiles
+.loop
+  ld bc, OverworldTiles;
+  ld a, [de]
+
+  ; copy one tile
+  cp a, END_OF_TILESET
+  jr z, .done ; we hit end of tileset
+
+  ; copy 1 tile
+  ld c, a ; now c is the low portion of the address of a tile
+
+  ; otherwise copy 8 bytes
+  REPT 8
+    ; Mem copy 1 tile, 8 bytes
+    ld a, [bc]
+    ld [hli], a
+
+    ; second byte always $FF
+    ld a, $00
+    ld [hli], a
+    inc bc
+  ENDR
+
+  ; skip a tile in the source
+  inc de
+  inc de
+
+  ; skip a tile in the dest (add 16)
+  ld a, $0F
+  or l
+  ld l, a
+  inc hl
 
   jr .loop
 .done
@@ -136,7 +207,8 @@ fullMapRedraw:
   call assertLCDOff
 
   call LoadMapPalette
-  call LoadMapTileset
+  call LoadMapTilesetOddTiles
+  call LoadMapTilesetEvenTiles
   call LoadMapTileMap
 
   ret
