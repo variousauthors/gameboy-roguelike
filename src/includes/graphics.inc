@@ -1,6 +1,26 @@
 IF !DEF(GRAPHICS_INC)
 DEF GRAPHICS_INC EQU 1
 
+; we have to store the colors BACKWARDS
+; so that we can read them into the BGCP in
+; a nice easy way
+
+DEF LIGHT_GREEN EQU $23f3 ; $23ee ; $136a
+DEF MID_GREEN EQU $02c8 ; $034c ; $02e9 ; $0265
+DEF DARK_GREEN EQU $0120
+DEF OCEAN_BLUE EQU $7e29 ; $75c1 ; $7AAC
+DEF WAVES_BLUE EQU $7e24
+DEF WHITE EQU $7fff
+DEF BLACK EQU $0000
+DEF LIGHT_GRAY EQU $39ce
+DEF DARK_GRAY EQU $2529
+DEF BRIDGE_BROWN EQU $0552
+DEF YELLOW EQU $03FF
+
+DEF GREEN_BG_COLOR EQU LIGHT_GREEN
+DEF YELLOW_BG_COLOR EQU YELLOW
+DEF BLUE_BG_COLOR EQU OCEAN_BLUE
+
 SECTION "TileDataUtils", ROM0
 
 /** 256 tiles, each 8x8 1bpp = 8 bytes */
@@ -35,125 +55,5 @@ DEF DOOR_TILE RB $8
 
 INCBIN "assets/prototype/house-1bpp-no-grid-bw.1bpp"
 OverworldTilesEnd:
-
-Tiles:
-  ; floor
-	dw `00000000
-	dw `00000000
-	dw `00000000
-	dw `00000000
-	dw `00000000
-	dw `00000000
-	dw `00000000
-	dw `00000000
-
-  ; wall
-	dw `33333333
-	dw `33333333
-	dw `33333333
-	dw `33333333
-	dw `33333333
-	dw `33333333
-	dw `33333333
-	dw `33333333
-
-  ; tree
-	dw `01111100
-	dw `11111110
-	dw `11111110
-	dw `11111110
-	dw `01111100
-	dw `02222000
-	dw `00220000
-	dw `02222000
-
-  ; wall
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-TilesEnd:
-
-SECTION "Tilemap", ROM0
-
-PlayerSprites:
-	dw `22222222
-	dw `21111112
-	dw `21111112
-	dw `21111112
-	dw `21111112
-	dw `21111112
-	dw `21111112
-	dw `22222222
-
-	dw `11111111
-	dw `12222221
-	dw `12111121
-	dw `12111121
-	dw `12111121
-	dw `12111121
-	dw `12222221
-	dw `11111111
-
-	dw `11111111
-	dw `11111111
-	dw `11222211
-	dw `11211211
-	dw `11211211
-	dw `11222211
-	dw `11111111
-	dw `11111111
-
-	dw `11111111
-	dw `11111111
-	dw `11111111
-	dw `11122111
-	dw `11122111
-	dw `11111111
-	dw `11111111
-	dw `11111111
-PlayerSpritesEnd:
-
-MonsterSprites:
-	dw `11111111
-	dw `12222221
-	dw `12222221
-	dw `12222221
-	dw `12222221
-	dw `12222221
-	dw `12222221
-	dw `11111111
-
-	dw `22222222
-	dw `21111112
-	dw `21222212
-	dw `21222212
-	dw `21222212
-	dw `21222212
-	dw `21111112
-	dw `22222222
-
-	dw `22222222
-	dw `22222222
-	dw `22111122
-	dw `22122122
-	dw `22122122
-	dw `22111122
-	dw `22222222
-	dw `22222222
-
-	dw `22222222
-	dw `22222222
-	dw `22222222
-	dw `22211222
-	dw `22211222
-	dw `22222222
-	dw `22222222
-	dw `22222222
-MonsterSpritesEnd:
 
 ENDC

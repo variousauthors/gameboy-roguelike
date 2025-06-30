@@ -14,6 +14,9 @@ CURRENT_MAP_LOW_BYTE: ds 1
 CURRENT_MAP_TILESET_HIGH_BYTE: ds 1
 CURRENT_MAP_TILESET_LOW_BYTE: ds 1
 
+CURRENT_MAP_PALETTE_HIGH_BYTE: ds 1
+CURRENT_MAP_PALETTE_LOW_BYTE: ds 1
+
 SECTION "MapUtilities", ROM0
 
 /*
@@ -56,6 +59,33 @@ LoadMapTileMapOneRow:
   dec b
   jr nz, .advance
 .done2
+
+  ret
+
+LoadMapPalette:
+  ; arrange for BCPD to point to the first palette
+  ld hl, rBCPS
+  ld a, %10000000 ; auto increment
+  ld [hl], a
+
+  ; load the source
+  call getCurrentMapPalette
+
+  ld hl, rBCPD ; set the destination
+
+  ld b, 8
+.loop
+  ; copy one palette, 8 bytes
+  REPT 8
+    ld a, [de]
+    ld [hl], a
+    inc de
+  ENDR
+  
+  ; BCPD is incremented internally
+  dec b
+  jr nz, .loop
+.done
 
   ret
 
@@ -105,6 +135,7 @@ LoadMapTileset:
 fullMapRedraw:
   call assertLCDOff
 
+  call LoadMapPalette
   call LoadMapTileset
   call LoadMapTileMap
 
@@ -141,6 +172,18 @@ getCurrentMapTileset:
 
   ret
 
+; @return de - address of palette for current map
+getCurrentMapPalette:
+  ld hl, CURRENT_MAP_PALETTE_HIGH_BYTE
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ld d, h
+  ld e, l
+
+  ret
+
 ; @param de - address of current map
 ; @return void CURRENT_MAP pointer is set to de
 setCurrentMap:
@@ -159,6 +202,10 @@ setCurrentMap:
   call getCurrentMap
   call getMapTilesetFromMetadata
   call setCurrentMapTileset
+
+  call getCurrentMap
+  call getMapPaletteFromMetadata
+  call setCurrentMapPalette
 
   pop de
 
@@ -183,6 +230,29 @@ getMapTilesetFromMetadata:
 
   ret
 
+; @param de - address of map
+; @return de - address of map palette
+getMapPaletteFromMetadata:
+  ; advance to the palette pointer
+  ; @DEPENDS on MAP_METADATA_SIZE
+
+  ; need to advance passed the tileset
+  ; tileset is 16 + 1 bytes
+  inc de
+  inc de
+
+  ; dereference the pointer
+  ld a, [de]
+  ld h, a
+  inc de
+  ld a, [de]
+  ld l, a
+
+  ld d, h
+  ld e, l
+
+  ret
+
 ; @param hl - tileset 
 setCurrentMapTileset:
   ld hl, CURRENT_MAP_TILESET_HIGH_BYTE
@@ -190,6 +260,18 @@ setCurrentMapTileset:
   ld [hl], a
 
   ld hl, CURRENT_MAP_TILESET_LOW_BYTE
+  ld a, e
+  ld [hl], a
+
+  ret
+
+; @param hl - tileset 
+setCurrentMapPalette:
+  ld hl, CURRENT_MAP_PALETTE_HIGH_BYTE
+  ld a, d
+  ld [hl], a
+
+  ld hl, CURRENT_MAP_PALETTE_LOW_BYTE
   ld a, e
   ld [hl], a
 

@@ -15,6 +15,8 @@ SECTION "Header", ROM0[$100]
 
 	jp EntryPoint
 
+  ds $143 - @, 0 
+  db $C0
 	ds $150 - @, 0 ; Make room for the header
 
 Main:

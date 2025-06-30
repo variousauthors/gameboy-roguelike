@@ -6,6 +6,7 @@ Section "House1bppNoGridBwY0X0Map", ROM0
 Start: ; marks the "initial map"
 House1bppNoGridBwY0X0Map:
   db HIGH(House1bppNoGridBwY0X0MapTileset), LOW(House1bppNoGridBwY0X0MapTileset), 
+  db HIGH(House1bppNoGridBwY0X0MapDMGBGPalettes), LOW(House1bppNoGridBwY0X0MapDMGBGPalettes), 
 House1bppNoGridBwY0X0MapData:
 ; this file will be generated
 INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0-data.inc"
@@ -13,5 +14,29 @@ INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0-data.inc"
 House1bppNoGridBwY0X0MapTileset:
 db EMPTY_TILE, FLOWER_TILE, GRASS_TILE, ROAD_TILE, SIGN_TILE, TREE_ONE_TILE, TREE_TWO_TILE, WALL_TILE
 db WATER_TILE, WATER_EDGE_TILE, BRIDGE_TILE, CLIFF_TILE, CLIFF_EDGE_TILE, CAVE_TILE, UNUSED_TILE , DOOR_TILE, END_OF_TILESET
+
+; specifies one pair of colors per tile
+; the low value, and the high value
+; 2 pairs are read into each of 8 palettes
+; so we have 16 distinct color pairs
+; the "low" color and the "high" color
+House1bppNoGridBwY0X0MapDMGBGPalettes:
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw MID_GREEN, DARK_GREEN
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw BLUE_BG_COLOR, YELLOW_BG_COLOR
+dw BLUE_BG_COLOR, YELLOW_BG_COLOR
+dw BLUE_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+dw GREEN_BG_COLOR, YELLOW_BG_COLOR
+
 
 ENDC
