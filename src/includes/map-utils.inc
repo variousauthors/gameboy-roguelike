@@ -19,6 +19,56 @@ CURRENT_MAP_PALETTE_LOW_BYTE: ds 1
 
 SECTION "MapUtilities", ROM0
 
+/** loads the tile with BGP equal to
+ * the tile index into the tileset / 2
+ * so every 2 tiles have one palette */
+LoadMapTileMapAttributes:
+  call getCurrentMapTileMap
+  ld hl, $9800
+
+  ; select GBC bank 1, tile attributes
+  ld a, 1
+  ld [rVBK], a
+
+  ld c, 18
+.loop
+  call LoadMapTileMapAttributesOneRow
+  dec c
+  jr nz, .loop
+.done
+
+  ; reset bank
+  ld a, 0
+  ld [rVBK], a
+
+  ret
+
+; @param de - source, the tilemap
+; @param hl - destination
+; @destroys b
+LoadMapTileMapAttributesOneRow:
+  ld b, 20
+.copyOneRow
+  ld a, [de]
+  srl a ; now a is in 0 - 7
+  ld [hli], a
+  inc de
+
+  dec b
+  jr nz, .copyOneRow
+.copyOneRowDone
+
+  ; get hl ready for the next row
+  ld b, 12
+.advance
+  inc hl
+
+  dec b
+  jr nz, .advance
+.done2
+
+  ret
+
 /*
 OK so the plan is to cut the map data up into 20 x 18 rects
 each rect will be a "map" and when we want to load a map
@@ -120,8 +170,8 @@ LoadMapTilesetEvenTiles:
     ld a, [bc]
     ld [hli], a
 
-    ; second byte always $FF
-    ld a, $FF
+    ; second byte always $00
+    ld a, $00
     ld [hli], a
     inc bc
   ENDR
@@ -180,7 +230,7 @@ LoadMapTilesetOddTiles:
     ld [hli], a
 
     ; second byte always $FF
-    ld a, $00
+    ld a, $FF
     ld [hli], a
     inc bc
   ENDR
@@ -210,6 +260,7 @@ fullMapRedraw:
   call LoadMapTilesetOddTiles
   call LoadMapTilesetEvenTiles
   call LoadMapTileMap
+  call LoadMapTileMapAttributes
 
   ret
 
