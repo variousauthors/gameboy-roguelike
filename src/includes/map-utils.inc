@@ -24,7 +24,7 @@ SECTION "MapUtilities", ROM0
  * so every 2 tiles have one palette */
 LoadMapTileMapAttributes:
   call getCurrentMapTileMap
-  ld hl, $9800
+  ld de, $9800
 
   ; select GBC bank 1, tile attributes
   ld a, 1
@@ -43,15 +43,15 @@ LoadMapTileMapAttributes:
 
   ret
 
-; @param de - source, the tilemap
-; @param hl - destination
+; @param hl - source, the tilemap
+; @param de - destination
 ; @destroys b
 LoadMapTileMapAttributesOneRow:
   ld b, 20
 .copyOneRow
-  ld a, [de]
+  ld a, [hli]
   srl a ; now a is in 0 - 7
-  ld [hli], a
+  ld [de], a
   inc de
 
   dec b
@@ -61,7 +61,7 @@ LoadMapTileMapAttributesOneRow:
   ; get hl ready for the next row
   ld b, 12
 .advance
-  inc hl
+  inc de
 
   dec b
   jr nz, .advance
@@ -76,7 +76,7 @@ we just copy that rect into the VRAM
 */
 LoadMapTileMap:
   call getCurrentMapTileMap
-  ld hl, $9800
+  ld de, $9800
 
   ld c, 18
 .loop
@@ -87,14 +87,14 @@ LoadMapTileMap:
 
   ret
 
-; @param de - source
-; @param hl - destination
+; @param hl - source
+; @param de - destination
 ; @destroys b
 LoadMapTileMapOneRow:
   ld b, 20
 .copyOneRow
-  ld a, [de]
-  ld [hli], a
+  ld a, [hli]
+  ld [de], a
   inc de
 
   dec b
@@ -104,7 +104,7 @@ LoadMapTileMapOneRow:
   ; get hl ready for the next row
   ld b, 12
 .advance
-  inc hl
+  inc de
 
   dec b
   jr nz, .advance
@@ -114,22 +114,21 @@ LoadMapTileMapOneRow:
 
 LoadMapPalette:
   ; arrange for BCPD to point to the first palette
-  ld hl, rBCPS
+  ld de, rBCPS
   ld a, %10000000 ; auto increment
-  ld [hl], a
+  ld [de], a
 
   ; load the source
   call getCurrentMapPalette
 
-  ld hl, rBCPD ; set the destination
+  ld de, rBCPD ; set the destination
 
   ld b, 8
 .loop
   ; copy one palette, 8 bytes
   REPT 8
-    ld a, [de]
-    ld [hl], a
-    inc de
+    ld a, [hli]
+    ld [de], a
   ENDR
   
   ; BCPD is incremented internally
@@ -139,7 +138,7 @@ LoadMapPalette:
 
   ret
 
-; @param de - address of the tile set to load
+; @param hl - address of the tile set to load
 ; each tile set is 16 tiles long, each entry 1 byte
 ; each tile set must end with 0xFF to indicate end of tileset
 ; loads only the event tiles, so that odd and even tiles
@@ -150,12 +149,12 @@ LoadMapTilesetEvenTiles:
   ; TileData is aligned to 8 bytes so e is 0x00
 
   call getCurrentMapTileset ; source
-  ld hl, $9000 ; destination
+  ld de, $9000 ; destination
 
   ; we copy all of the even tiles
 .loop
   ld bc, OverworldTiles;
-  ld a, [de]
+  ld a, [hl]
 
   ; copy one tile
   cp a, END_OF_TILESET
@@ -168,30 +167,32 @@ LoadMapTilesetEvenTiles:
   REPT 8
     ; Mem copy 1 tile, 8 bytes
     ld a, [bc]
-    ld [hli], a
+    ld [de], a
+    inc de
 
     ; second byte always $00
     ld a, $00
-    ld [hli], a
+    ld [de], a
+    inc de
     inc bc
   ENDR
 
   ; skip a tile in the source
-  inc de
-  inc de
+  inc hl
+  inc hl
 
   ; skip a tile in the dest (add 16)
   ld a, $0F
-  or l
-  ld l, a
-  inc hl
+  or e
+  ld e, a
+  inc de
 
   jr .loop
 .done
 
   ret
 
-; @param de - address of the tile set to load
+; @param hl - address of the tile set to load
 ; each tile set is 16 tiles long, each entry 1 byte
 ; each tile set must end with 0xFF to indicate end of tileset
 ; loads only the odd tiles, so that odd and even tiles
@@ -202,19 +203,19 @@ LoadMapTilesetOddTiles:
   ; TileData is aligned to 8 bytes so e is 0x00
 
   call getCurrentMapTileset ; source
-  inc de ; start from odd tile
-  ld hl, $9000 ; destination
+  inc hl ; start from odd tile
+  ld de, $9000 ; destination
 
   ; skip a tile in the dest (add 16)
   ld a, $0F
-  or l
-  ld l, a
-  inc hl
+  or e
+  ld e, a
+  inc de
 
   ; we copy all of the even tiles
 .loop
   ld bc, OverworldTiles;
-  ld a, [de]
+  ld a, [hl]
 
   ; copy one tile
   cp a, END_OF_TILESET
@@ -227,23 +228,25 @@ LoadMapTilesetOddTiles:
   REPT 8
     ; Mem copy 1 tile, 8 bytes
     ld a, [bc]
-    ld [hli], a
+    ld [de], a
+    inc de
 
     ; second byte always $FF
     ld a, $FF
-    ld [hli], a
+    ld [de], a
+    inc de
     inc bc
   ENDR
 
   ; skip a tile in the source
-  inc de
-  inc de
+  inc hl
+  inc hl
 
   ; skip a tile in the dest (add 16)
   ld a, $0F
-  or l
-  ld l, a
-  inc hl
+  or e
+  ld e, a
+  inc de
 
   jr .loop
 .done
@@ -264,144 +267,126 @@ fullMapRedraw:
 
   ret
 
-; @return de - address of current map
+; @return hl - address of current map
 getCurrentMap:
   ld hl, CURRENT_MAP_HIGH_BYTE
   ld a, [hl+]
   ld l, [hl]
   ld h, a
 
-  ld d, h
-  ld e, l
-
   ret
 
-; @return de - address of tile map for current map
+; @return hl - address of tile map for current map
 getCurrentMapTileMap:
   call getCurrentMap
-  inc de
-  inc de ; advance past map metadata
+  inc hl
+  inc hl ; advance past map metadata
   ret
 
-; @return de - address of tileset for current map
+; @return hl - address of tileset for current map
 getCurrentMapTileset:
   ld hl, CURRENT_MAP_TILESET_HIGH_BYTE
   ld a, [hl+]
   ld l, [hl]
   ld h, a
 
-  ld d, h
-  ld e, l
-
   ret
 
-; @return de - address of palette for current map
+; @return hl - address of palette for current map
 getCurrentMapPalette:
   ld hl, CURRENT_MAP_PALETTE_HIGH_BYTE
   ld a, [hl+]
   ld l, [hl]
   ld h, a
 
-  ld d, h
-  ld e, l
-
   ret
 
-; @param de - address of current map
-; @return void CURRENT_MAP pointer is set to de
+; @param hl - address of current map
+; @return void CURRENT_MAP pointer is set to hl
 setCurrentMap:
-  push de
+  push hl
 
   ; set the current map
-  ld hl, CURRENT_MAP_HIGH_BYTE
-  ld a, d
-  ld [hl], a
+  ld de, CURRENT_MAP_HIGH_BYTE
+  ld a, h
+  ld [de], a
 
-  ld hl, CURRENT_MAP_LOW_BYTE
-  ld a, e
-  ld [hl], a
+  ld de, CURRENT_MAP_LOW_BYTE
+  ld a, l
+  ld [de], a
 
   ; set the current tileset using the map
   call getCurrentMap
-  call getMapTilesetFromMetadata
+  call getTilesetFromMapMetadata
   call setCurrentMapTileset
 
   call getCurrentMap
-  call getMapPaletteFromMetadata
+  call getPaletteFromMapMetadata
   call setCurrentMapPalette
 
-  pop de
+  pop hl
 
   ret
 
-; @param de - address of map
-; @return de - address of map tileset
-getMapTilesetFromMetadata:
+; @param hl - address of map
+; @return hl - address of map tileset
+getTilesetFromMapMetadata:
   ; advance to the tileset pointer
   ; @DEPENDS on MAP_METADATA_SIZE
   ; no need to advance, it's the first field
 
   ; dereference the pointer
-  ld a, [de]
+  ld a, [hl+]
+  ld l, [hl]
   ld h, a
-  inc de
-  ld a, [de]
-  ld l, a
-
-  ld d, h
-  ld e, l
 
   ret
 
-; @param de - address of map
-; @return de - address of map palette
-getMapPaletteFromMetadata:
+; @param hl - address of map
+; @return hl - address of map palette
+getPaletteFromMapMetadata:
   ; advance to the palette pointer
   ; @DEPENDS on MAP_METADATA_SIZE
 
   ; need to advance passed the tileset
   ; tileset is 16 + 1 bytes
-  inc de
-  inc de
+  inc hl
+  inc hl
 
   ; dereference the pointer
-  ld a, [de]
+  ld a, [hl+]
+  ld l, [hl]
   ld h, a
-  inc de
-  ld a, [de]
-  ld l, a
-
-  ld d, h
-  ld e, l
 
   ret
 
 ; @param hl - tileset 
 setCurrentMapTileset:
-  ld hl, CURRENT_MAP_TILESET_HIGH_BYTE
-  ld a, d
-  ld [hl], a
+  ld de, CURRENT_MAP_TILESET_HIGH_BYTE
+  ld a, h
+  ld [de], a
 
-  ld hl, CURRENT_MAP_TILESET_LOW_BYTE
-  ld a, e
-  ld [hl], a
+  ld de, CURRENT_MAP_TILESET_LOW_BYTE
+  ld a, l
+  ld [de], a
 
   ret
 
-; @param hl - tileset 
+; @param hl - palette 
 setCurrentMapPalette:
-  ld hl, CURRENT_MAP_PALETTE_HIGH_BYTE
-  ld a, d
-  ld [hl], a
+  ld de, CURRENT_MAP_PALETTE_HIGH_BYTE
+  ld a, h
+  ld [de], a
 
-  ld hl, CURRENT_MAP_PALETTE_LOW_BYTE
-  ld a, e
-  ld [hl], a
+  ld de, CURRENT_MAP_PALETTE_LOW_BYTE
+  ld a, l
+  ld [de], a
 
   ret
 
+; sets the current map to Start
 initCurrentMap:
-  ld de, Start
+  ld hl, Start
   call setCurrentMap
 
   ret
