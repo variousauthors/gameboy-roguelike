@@ -38,14 +38,6 @@ EntryPoint:
 
   call fullMapRedraw
 
-  /*
-	; Copy the tilemap
-	ld de, Tilemap
-	ld hl, $9800
-	ld bc, TilemapEnd - Tilemap
-  call Memcopy
-  */
-
   ; clear OAM sure why not
   ld a, 0
   ld b, 160
@@ -54,6 +46,8 @@ ClearOam:
   ld [hli], a
   dec b
   jp nz, ClearOam
+
+  call initPlayer
 
   ; Initialize global variables
   ld a, 0
@@ -67,6 +61,49 @@ ClearOam:
   ei
 
   jp Main
+
+SECTION "PlayerState", WRAM0
+
+playerWorldX: db
+playerWorldY: db
+
+SECTION "Player", ROM0
+
+initPlayer:
+	; Copy the player sprite
+	ld de, PlayerSprite
+	ld hl, $8000
+	ld bc, PlayerSpriteEnd - PlayerSprite
+  call Memcopy
+
+  ; initialize player state
+  ld a, 10
+  ld [playerWorldX], a
+  ld [playerWorldY], a
+
+  ; init player sprite
+  ld hl, _OAMRAM
+
+  ld a, [playerWorldY]
+  inc a
+  inc a ; add 16, sprites start off-screen
+  sla a
+  sla a
+  sla a
+  ld [hli], a
+
+  ld a, [playerWorldX]
+  inc a ; add 8 sprites start off-screen
+  sla a
+  sla a
+  sla a
+  ld [hli], a
+
+  ld a, 0
+  ld [hli], a
+  ld [hli], a
+
+  ret
 
 
 INCLUDE "helpers.inc"

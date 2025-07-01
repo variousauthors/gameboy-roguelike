@@ -64,4 +64,11 @@ DEF DOOR_TILE RB $8
 INCBIN "assets/prototype/house-1bpp-no-grid-bw.1bpp"
 OverworldTilesEnd:
 
+PlayerSprite:
+  db $FF, $FF, $FF, $FF
+  db $FF, $FF, $FF, $FF
+  db $FF, $FF, $FF, $FF
+  db $FF, $FF, $FF, $FF
+PlayerSpriteEnd:
+
 ENDC
