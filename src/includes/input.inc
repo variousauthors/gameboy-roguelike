@@ -8,7 +8,7 @@ UpdateKeys:
   call .onenibble
   ld b, a
 
-  ; poll the other hald
+  ; poll the other half
   ld a, P1F_GET_DPAD
   call .onenibble
   swap a
@@ -37,6 +37,15 @@ UpdateKeys:
 .knownret
   ret
 
+DEF BUTTON_RIGHT EQU $10
+DEF BUTTON_LEFT EQU $20
+DEF BUTTON_UP EQU $40
+DEF BUTTON_DOWN EQU $80
+
+DEF BUTTON_RIGHT_BIT EQU $4
+DEF BUTTON_LEFT_BIT EQU $5
+DEF BUTTON_UP_BIT EQU $6
+DEF BUTTON_DOWN_BIT EQU $7
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db

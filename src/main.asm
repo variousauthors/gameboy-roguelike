@@ -22,6 +22,54 @@ SECTION "Header", ROM0[$100]
 Main:
   halt
 
+  call drawPlayer
+
+  ; read input
+  call UpdateKeys
+
+  ld a, [wNewKeys]
+
+.checkLeft
+  bit BUTTON_LEFT_BIT, a
+  jr z, .checkRight
+
+  ld hl, playerWorldX
+  ld b, [hl]
+  dec b
+  ld [hl], b
+
+.checkRight
+  bit BUTTON_RIGHT_BIT, a
+  jr z, .checkUp
+
+  ld hl, playerWorldX
+  ld b, [hl]
+  inc b
+  ld [hl], b
+
+.checkUp
+  bit BUTTON_UP_BIT, a
+  jr z, .checkDown
+
+  ld hl, playerWorldY
+  ld b, [hl]
+  dec b
+  ld [hl], b
+
+.checkDown
+  bit BUTTON_DOWN_BIT, a
+  jr z, .doneCheck
+
+  ld hl, playerWorldY
+  ld b, [hl]
+  inc b
+  ld [hl], b
+
+.doneCheck
+  ; check for collision
+  ; check for monster
+  ; update player pos
+
   nop
 
   jp Main
@@ -69,19 +117,8 @@ playerWorldY: db
 
 SECTION "Player", ROM0
 
-initPlayer:
-	; Copy the player sprite
-	ld de, PlayerSprite
-	ld hl, $8000
-	ld bc, PlayerSpriteEnd - PlayerSprite
-  call Memcopy
-
-  ; initialize player state
-  ld a, 10
-  ld [playerWorldX], a
-  ld [playerWorldY], a
-
-  ; init player sprite
+drawPlayer:
+  ; draw player sprite
   ld hl, _OAMRAM
 
   ld a, [playerWorldY]
@@ -102,6 +139,20 @@ initPlayer:
   ld a, 0
   ld [hli], a
   ld [hli], a
+
+  ret
+
+initPlayer:
+	; Copy the player sprite
+	ld de, PlayerSprite
+	ld hl, $8000
+	ld bc, PlayerSpriteEnd - PlayerSprite
+  call Memcopy
+
+  ; initialize player state
+  ld a, 12
+  ld [playerWorldX], a
+  ld [playerWorldY], a
 
   ret
 
