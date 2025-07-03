@@ -4,9 +4,17 @@ DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
 DEF BLANK_TILE EQU $08
 
+DEF GAME_TURN_PLAYER EQU $01
+DEF GAME_TURN_MONSTER EQU $02
+
 SECTION "GameState", WRAM0
 
-wPlayerTurn: db
+wGameTurn: db
+
+; pointer to function pointer
+CurrentTurnFunction: dw
+; null terminated list of function pointers
+TurnFunctions: ds 4 + 1
 
 SECTION "vblank_interrupt", ROM0[$0040]
   reti
@@ -24,29 +32,23 @@ Main:
 
   call drawPlayer
 
-  ; read input
-  call UpdateKeys
-
-  ld a, [wNewKeys]
-  cp a, 0
-  jr z, .noInput
-
-  call recordMoveIntentPlayer
-
-  ; check for collision
-  call checkCollisionPlayer
-  call z, resetMoveIntentPlayer
-
-  ; check for monster
-
-  ; update player pos
-  call applyMoveIntentPlayer
-
-.noInput
-
-  nop
+  ld hl, CurrentTurnFunction
+  call dereferencePointer
+  call dereferencePointer
+  call indirectCall
+  call nz, passTurn
 
   jp Main
+
+passTurn:
+  ; load up the current turn function
+  ; get the address
+  ; increment by two
+  ; if the value there is zero
+  ; then loop
+  ; write the address
+
+  ret
 
 EntryPoint:
 	; Shut down audio circuitry
@@ -76,6 +78,26 @@ ClearOam:
   ld [wCurKeys], a
   ld [wNewKeys], a
 
+  ld a, 1
+  ld [wGameTurn], a
+
+  ; init list of "turn functions"
+  ld de, TurnFunctions
+  ld hl, doTurnPlayer
+  call updatePointer
+  inc de
+
+  ld hl, doTurnMonster
+  call updatePointer
+  inc de
+  ld a, 0
+  ld [de], a ; null terminate
+
+  ; pointer to pointers
+  ld de, CurrentTurnFunction
+  ld hl, TurnFunctions
+  call updatePointer
+
   call turnOnLCD
 
   ld a, IEF_VBLANK
@@ -87,6 +109,7 @@ ClearOam:
 
 INCLUDE "helpers.inc"
 INCLUDE "player.inc"
+INCLUDE "monster.inc"
 INCLUDE "graphics.inc"
 INCLUDE "input.inc"
 INCLUDE "map-utils.inc"

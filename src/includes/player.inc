@@ -41,6 +41,42 @@ resetMoveIntentPlayer:
 
   ret
 
+; @return z if we aborted the turn
+doTurnPlayer:
+  ; read input
+  call UpdateKeys
+
+  ld a, [wNewKeys]
+  cp a, 0
+  jr z, .noInput
+
+  call recordMoveIntentPlayer
+
+  ; check for collision
+  call checkCollisionPlayer
+  jr z, .abortPlayerTurn
+
+  ; check for monster
+
+  ; update player pos
+  call applyMoveIntentPlayer
+
+  ; detect whether the player actually _did_
+  ; anything... and pass the turn
+
+  call passTurnPlayer
+
+.noInput
+  ret
+
+.abortPlayerTurn
+  call resetMoveIntentPlayer
+
+  ret
+
+passTurnPlayer:
+  ret
+
 applyMoveIntentPlayer:
   ld a, [playerWorldNextX]
   ld [playerWorldX], a

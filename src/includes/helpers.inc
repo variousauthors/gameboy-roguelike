@@ -180,4 +180,28 @@ addAToHL:
 
   ret
 
+; @param hl - pointer high byte
+; @return hl - address
+dereferencePointer:
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ret
+
+; @param hl - address
+; @param de - pointer
+updatePointer:
+  ld a, h
+  ld [de], a
+  inc de
+  ld a, l
+  ld [de], a
+
+  ret
+
+; @param - hl the address of some subroutie to call
+indirectCall:
+  jp hl
+
 ENDC
