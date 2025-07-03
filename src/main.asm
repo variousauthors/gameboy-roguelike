@@ -28,47 +28,21 @@ Main:
   call UpdateKeys
 
   ld a, [wNewKeys]
+  cp a, 0
+  jr z, .noInput
 
-.checkLeft
-  bit BUTTON_LEFT_BIT, a
-  jr z, .checkRight
+  call recordMoveIntentPlayer
 
-  ld hl, playerWorldX
-  ld b, [hl]
-  dec b
-  ld [hl], b
-
-.checkRight
-  bit BUTTON_RIGHT_BIT, a
-  jr z, .checkUp
-
-  ld hl, playerWorldX
-  ld b, [hl]
-  inc b
-  ld [hl], b
-
-.checkUp
-  bit BUTTON_UP_BIT, a
-  jr z, .checkDown
-
-  ld hl, playerWorldY
-  ld b, [hl]
-  dec b
-  ld [hl], b
-
-.checkDown
-  bit BUTTON_DOWN_BIT, a
-  jr z, .doneCheck
-
-  ld hl, playerWorldY
-  ld b, [hl]
-  inc b
-  ld [hl], b
-
-.doneCheck
   ; check for collision
+  call checkCollisionPlayer
+  call z, resetMoveIntentPlayer
+
   ; check for monster
+
   ; update player pos
+  call applyMoveIntentPlayer
+
+.noInput
 
   nop
 
@@ -110,54 +84,9 @@ ClearOam:
 
   jp Main
 
-SECTION "PlayerState", WRAM0
-
-playerWorldX: db
-playerWorldY: db
-
-SECTION "Player", ROM0
-
-drawPlayer:
-  ; draw player sprite
-  ld hl, _OAMRAM
-
-  ld a, [playerWorldY]
-  inc a
-  inc a ; add 16, sprites start off-screen
-  sla a
-  sla a
-  sla a
-  ld [hli], a
-
-  ld a, [playerWorldX]
-  inc a ; add 8 sprites start off-screen
-  sla a
-  sla a
-  sla a
-  ld [hli], a
-
-  ld a, 0
-  ld [hli], a
-  ld [hli], a
-
-  ret
-
-initPlayer:
-	; Copy the player sprite
-	ld de, PlayerSprite
-	ld hl, $8000
-	ld bc, PlayerSpriteEnd - PlayerSprite
-  call Memcopy
-
-  ; initialize player state
-  ld a, 12
-  ld [playerWorldX], a
-  ld [playerWorldY], a
-
-  ret
-
 
 INCLUDE "helpers.inc"
+INCLUDE "player.inc"
 INCLUDE "graphics.inc"
 INCLUDE "input.inc"
 INCLUDE "map-utils.inc"

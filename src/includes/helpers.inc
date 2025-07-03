@@ -75,14 +75,14 @@ turnOnLCD:
 
 ; Convert a pixel position to a tilemap address
 ; hl = $9800 + X + Y * 32
-; @param b: X
-; @param c: Y
+; @param b: Y
+; @param c: X
 ; @return hl: tile address
 getTileAddressByPixel:
   ; First, we need to divide by 8 to convert a pixel position to a tile position.
   ; After this we want to multiply the Y position by 32.
   ; These operations effectively cancel out so we only need to mask the Y value.
-  ld a, c
+  ld a, b
   and a, %11111000
   ld l, a
   ld h, 0
@@ -90,7 +90,7 @@ getTileAddressByPixel:
   add hl, hl ; position * 16
   add hl, hl ; position * 32
   ; Convert the X position to an offset.
-  ld a, b
+  ld a, c
   srl a ; a / 2
   srl a ; a / 4
   srl a ; a / 8
@@ -101,21 +101,82 @@ getTileAddressByPixel:
   sub a, l
   ld h, a
   ; Add the offset to the tilemap's base address, and we are done!
-  ld bc, $9800
-  add hl, bc
+  ld de, $9800
+  add hl, de
   ret
 
-; hl - tile address
+; Convert a world position to a tilemap address
+; hl = $9800 + X + Y * 32
+; @param b: Y
+; @param c: X
+; @return hl: tile address
+getTileAddressByWorldPosition:
+  ; we want to multiply the Y position by 20.
+  ; 20 = (4 + 16)
+  ; so first times 4 then times 16
+  ; then add
+  ; world position y is in 0 - 18 so 
+  ; we can safely shift up to 8x
+  ld d, b
+  sla d ; times 2
+  sla d ; times 4
+
+  ld l, b
+  ld h, 0
+  ; Now times 16
+  add hl, hl ; position * 2
+  add hl, hl ; position * 4
+  add hl, hl ; position * 8
+  add hl, hl ; position * 16
+
+  ; then sum
+  ld a, d
+  call addAToHL
+
+  ; the X position is just an offset.
+  ld a, c
+  call addAToHL
+
+  ; we need the offset in de
+  ; so we can add the tilemap base address
+  ld e, l
+  ld d, h
+
+  ; Add the offset to the tilemap's base address, and we are done!
+  call getCurrentMapTileMap
+  add hl, de
+  ret
+
+; a - tilemap index
 ; @return z if collision
 isCollision:
+  push af
+  call getCurrentMapTilesetMetadata
+  pop af
+  call addAToHL
   ld a, [hl]
-  cp a, WALL_TILE
+
+  and a, PASSABLE_TILE
+  ; z if not passable
+
   ret
 
 /** halts the program forever if the  */
 crash:
 .loop
   jr .loop
+
+  ret
+
+; @param a - a
+; @param hl - hl
+; @return hl - hl + a
+addAToHL:
+  add l ; a = a + l
+	ld l, a ; l' = a'
+	adc h ; a'' = a' + h + c ; what!?
+	sub l ; l' here is a + l
+	ld h, a ; so h is getting h + c yikes!
 
   ret
 

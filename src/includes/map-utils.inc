@@ -14,6 +14,12 @@ CURRENT_MAP_LOW_BYTE: ds 1
 CURRENT_MAP_TILESET_HIGH_BYTE: ds 1
 CURRENT_MAP_TILESET_LOW_BYTE: ds 1
 
+CURRENT_MAP_TILEMAP_HIGH_BYTE: ds 1
+CURRENT_MAP_TILEMAP_LOW_BYTE: ds 1
+
+CURRENT_MAP_TILESET_METADATA_HIGH_BYTE: ds 1
+CURRENT_MAP_TILESET_METADATA_LOW_BYTE: ds 1
+
 CURRENT_MAP_PALETTE_HIGH_BYTE: ds 1
 CURRENT_MAP_PALETTE_LOW_BYTE: ds 1
 
@@ -278,14 +284,25 @@ getCurrentMap:
 
 ; @return hl - address of tile map for current map
 getCurrentMapTileMap:
-  call getCurrentMap
-  inc hl
-  inc hl ; advance past map metadata
+  ld hl, CURRENT_MAP_TILEMAP_HIGH_BYTE
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
   ret
 
 ; @return hl - address of tileset for current map
 getCurrentMapTileset:
   ld hl, CURRENT_MAP_TILESET_HIGH_BYTE
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ret
+
+; @return hl - address of tileset metadata
+getCurrentMapTilesetMetadata:
+  ld hl, CURRENT_MAP_TILESET_METADATA_HIGH_BYTE
   ld a, [hl+]
   ld l, [hl]
   ld h, a
@@ -304,8 +321,6 @@ getCurrentMapPalette:
 ; @param hl - address of current map
 ; @return void CURRENT_MAP pointer is set to hl
 setCurrentMap:
-  push hl
-
   ; set the current map
   ld de, CURRENT_MAP_HIGH_BYTE
   ld a, h
@@ -316,15 +331,44 @@ setCurrentMap:
   ld [de], a
 
   ; set the current tileset using the map
-  call getCurrentMap
+  push hl
   call getTilesetFromMapMetadata
   call setCurrentMapTileset
+  pop hl
 
-  call getCurrentMap
+  push hl
+  call getTilemapFromMap
+  call setCurrentMapTilemap
+  pop hl
+
+  push hl
+  call getTilesetMetadataFromMapMetadata
+  call setCurrentMapTilesetMetadata
+  pop hl
+
+  push hl
   call getPaletteFromMapMetadata
   call setCurrentMapPalette
-
   pop hl
+
+  ret
+
+; @param hl - address of map
+; @return hl - address of map tileset
+getTilemapFromMap:
+  ; advance to the tileset pointer
+  ; @DEPENDS on MAP_METADATA_SIZE
+  ; no need to advance, it's the first field
+
+  ; need to advance past metadata
+  inc hl
+  inc hl
+  inc hl
+  inc hl
+  inc hl
+  inc hl
+
+  ; it's not a pointer so no dereference
 
   ret
 
@@ -343,13 +387,13 @@ getTilesetFromMapMetadata:
   ret
 
 ; @param hl - address of map
-; @return hl - address of map palette
-getPaletteFromMapMetadata:
-  ; advance to the palette pointer
+; @return hl - address of map tileset
+getTilesetMetadataFromMapMetadata:
+  ; advance to the tileset pointer
   ; @DEPENDS on MAP_METADATA_SIZE
+  ; no need to advance, it's the first field
 
   ; need to advance passed the tileset
-  ; tileset is 16 + 1 bytes
   inc hl
   inc hl
 
@@ -357,6 +401,50 @@ getPaletteFromMapMetadata:
   ld a, [hl+]
   ld l, [hl]
   ld h, a
+
+  ret
+
+; @param hl - address of map
+; @return hl - address of map palette
+getPaletteFromMapMetadata:
+  ; advance to the palette pointer
+  ; @DEPENDS on MAP_METADATA_SIZE
+
+  ; need to advance passed the tileset
+  ; need to advance passed the tileset metadata
+  inc hl
+  inc hl
+  inc hl
+  inc hl
+
+  ; dereference the pointer
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ret
+
+; @param hl - tileset 
+setCurrentMapTilesetMetadata:
+  ld de, CURRENT_MAP_TILESET_METADATA_HIGH_BYTE
+  ld a, h
+  ld [de], a
+
+  ld de, CURRENT_MAP_TILESET_METADATA_LOW_BYTE
+  ld a, l
+  ld [de], a
+
+  ret
+
+; @param hl - tileset 
+setCurrentMapTilemap:
+  ld de, CURRENT_MAP_TILEMAP_HIGH_BYTE
+  ld a, h
+  ld [de], a
+
+  ld de, CURRENT_MAP_TILEMAP_LOW_BYTE
+  ld a, l
+  ld [de], a
 
   ret
 
