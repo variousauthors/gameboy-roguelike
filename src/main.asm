@@ -14,7 +14,7 @@ wGameTurn: db
 ; pointer to function pointer
 CurrentTurnFunction: dw
 ; null terminated list of function pointers
-TurnFunctions: ds 4 + 1
+TurnFunctions: ds 4 + 2
 
 SECTION "vblank_interrupt", ROM0[$0040]
   reti
@@ -42,11 +42,35 @@ Main:
 
 passTurn:
   ; load up the current turn function
-  ; get the address
-  ; increment by two
-  ; if the value there is zero
-  ; then loop
-  ; write the address
+  ld hl, CurrentTurnFunction
+  call dereferencePointer
+
+  ; move to the next one
+  inc hl
+  inc hl
+
+  ; check both bytes of the pointer
+  ld a, [hli]
+  cp 0
+  jr nz, .update
+
+  ; check both bytes of the pointer
+  ld a, [hl]
+  cp 0
+  jr nz, .update
+
+.reset
+  ; reset the pointer to the start
+  ld de, CurrentTurnFunction
+  ld hl, TurnFunctions
+  call updatePointer
+  ret
+
+.update
+  dec hl ; rewind to the start of the pointer
+  ; otherwise write the address
+  ld de, CurrentTurnFunction
+  call updatePointer
 
   ret
 
@@ -91,6 +115,8 @@ ClearOam:
   call updatePointer
   inc de
   ld a, 0
+  ld [de], a ; null terminate
+  inc de
   ld [de], a ; null terminate
 
   ; pointer to pointers
