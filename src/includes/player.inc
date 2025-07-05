@@ -17,19 +17,19 @@ SECTION "Player", ROM0
 DEF BLOCKING_TILE EQU $00
 DEF PASSABLE_TILE EQU $10
 
-; @return z if collision
-checkCollisionPlayer:
-  ; convert the y, x into tile address
-  ; look it up in the tileset
-  ; check the collision mask in the tileset
+getPlayerWorldPosition:
+  ld a, [playerWorldY]
+  ld b, a
+  ld a, [playerWorldX]
+  ld c, a
+
+  ret
+
+getPlayerWorldNextPosition:
   ld a, [playerWorldNextY]
   ld b, a
   ld a, [playerWorldNextX]
   ld c, a
-  call getCurrentMapTileAddressByWorldPosition
-
-  ld a, [hl]
-  call isCollision
 
   ret
 
@@ -54,7 +54,8 @@ doTurnPlayer:
   call recordMoveIntentPlayer
 
   ; check for collision
-  call checkCollisionPlayer
+  call getPlayerWorldNextPosition
+  call checkCollisionMap
   jr z, .abortPlayerTurn
 
   ; check for monster
@@ -64,6 +65,7 @@ doTurnPlayer:
 
   ; detect whether the player actually _did_
   ; anything... and pass the turn
+  call floodFillNavigationMap
 
   call passTurnPlayer
 

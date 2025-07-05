@@ -87,13 +87,9 @@ EntryPoint:
   call fullMapRedraw
 
   ; clear OAM sure why not
-  ld a, 0
   ld b, 160
   ld hl, _OAMRAM
-ClearOam:
-  ld [hli], a
-  dec b
-  jp nz, ClearOam
+  call clearMemory
 
   call initPlayer
 

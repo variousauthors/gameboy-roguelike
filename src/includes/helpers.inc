@@ -146,7 +146,18 @@ getTileAddressByWorldPosition:
 
   ret
 
+; @param b, c - y, x world position to check
+; @return z if collision
+checkCollisionMap:
+  ; convert the y, x into tile address
+  ; look it up in the tileset
+  ; check the collision mask in the tileset
+  call getCurrentMapTileAddressByWorldPosition
 
+  ld a, [hl]
+  call isCollision
+
+  ret
 
 ; a - tilemap index
 ; @return z if collision
@@ -204,5 +215,17 @@ updatePointer:
 ; @param - hl the address of some subroutie to call
 indirectCall:
   jp hl
+
+/* @param hl - memory to clear 
+ * @param b - amount to clear
+ **/
+clearMemory:
+  ld a, 0
+.loop
+  ld [hli], a
+  dec b
+  jp nz, .loop
+
+  ret
 
 ENDC
