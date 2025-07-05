@@ -105,11 +105,13 @@ getTileAddressByPixel:
   add hl, de
   ret
 
-; Convert a world position to a tilemap address
-; hl = $9800 + X + Y * 32
+; Convert a world position to a tilemap offset
+; the caller must then add hl, de
+; with hl having some base address
+; de = X + Y * 20
 ; @param b: Y
 ; @param c: X
-; @return hl: tile address
+; @return de: offset of the tile
 getTileAddressByWorldPosition:
   ; we want to multiply the Y position by 20.
   ; 20 = (4 + 16)
@@ -142,10 +144,9 @@ getTileAddressByWorldPosition:
   ld e, l
   ld d, h
 
-  ; Add the offset to the tilemap's base address, and we are done!
-  call getCurrentMapTileMap
-  add hl, de
   ret
+
+
 
 ; a - tilemap index
 ; @return z if collision

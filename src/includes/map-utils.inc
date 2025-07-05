@@ -318,6 +318,17 @@ getCurrentMapPalette:
 
   ret
 
+; Convert a world position to a tilemap address
+; hl = currentMapAddress + X + Y * 20
+; @param b: Y
+; @param c: X
+; @return hl: tile address
+getCurrentMapTileAddressByWorldPosition:
+  call getTileAddressByWorldPosition
+  call getCurrentMapTileMap
+  add hl, de
+  ret
+
 ; @param hl - address of current map
 ; @return void CURRENT_MAP pointer is set to hl
 setCurrentMap:

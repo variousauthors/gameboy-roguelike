@@ -26,7 +26,8 @@ checkCollisionPlayer:
   ld b, a
   ld a, [playerWorldNextX]
   ld c, a
-  call getTileAddressByWorldPosition
+  call getCurrentMapTileAddressByWorldPosition
+
   ld a, [hl]
   call isCollision
 
