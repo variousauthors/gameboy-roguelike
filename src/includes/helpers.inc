@@ -146,6 +146,19 @@ getTileAddressByWorldPosition:
 
   ret
 
+/** hl = hl - de */
+subHLDE:
+  push af
+  ld a, l
+	sub e
+	ld l, a
+	ld a, h
+	sbc d
+	ld h, a
+  pop af
+
+  ret
+
 ; @param b, c - y, x world position to check
 ; @return z if collision
 checkCollisionMap:

@@ -6,6 +6,8 @@ SECTION "NavigationMapState", WRAM0
 DEF NAVIGATION_MAP_WIDTH EQU 20
 DEF NAVIGATION_MAP_HEIGHT EQU 18
 DEF FLOOD_MAX EQU $6
+DEF VISITED_MASK EQU %10000000
+DEF VALUE_MASK EQU %00001111
 
 NavigationMap: ds NAVIGATION_MAP_HEIGHT * NAVIGATION_MAP_WIDTH
 NavigationMapEnd:
@@ -41,7 +43,8 @@ floodFillNavigationMap:
   ; terminating whenever a address is outside the map
   
   ld a, FLOOD_MAX
-  call recursivelyFloodFillNavigationMap
+  ld [hl], a ; prime the recursion
+  call breadthFirstRecursivelyFloodFillNavigationMap
 
   ret
 
@@ -87,6 +90,187 @@ framedMapCollisionCheck:
  */
 recursivelyFloodFillNavigationMap:
   ld b, a ; hide the value
+
+  ; if the center cell already has a value, abort
+  ld a, [hl]
+  cp a, 0
+  ret nz ; cell has been touched
+
+  ; if a is already 0, abort
+  ld a, b
+  cp a, 0
+  ret z ; we're out of steam
+
+  ; if hl collides with geometry, abort
+  call framedMapCollisionCheck
+  jr nz, .noCollision
+
+  ; we mark this collision so that we will skip future
+  ; checks against this tile
+.markCollision
+  ld [hl], $FF
+  ret
+.noCollision
+
+  ; if this address is out of bounds, abort
+  ld de, NavigationMapEnd
+  call addressIsGreaterEqual
+  ret nc ; out of bounds
+
+  ld de, NavigationMap
+  call addressIsGreaterEqual
+  ret c ; out of bounds
+
+  ; otherwise, fill the current cell and recurse
+  ld [hl], b
+  ld a, b
+  dec a
+
+  push af
+  push hl
+  inc hl
+  call recursivelyFloodFillNavigationMap
+  pop hl
+  pop af
+
+  push af
+  push hl
+  dec hl
+  call recursivelyFloodFillNavigationMap
+  pop hl
+  pop af
+
+  push af
+  push hl
+  ; add 20 to hl
+  ld de, 20
+  add hl, de
+  call recursivelyFloodFillNavigationMap
+  pop hl
+  pop af
+
+  ret
+
+/** 
+ * @param b - value to use
+ * @param hl - address of cell to fill */
+tryFillCell:
+  ; if the cell already has a value, abort
+  ld a, [hl]
+  cp a, 0
+  ret nz ; cell has been touched
+
+  ; if a is already 0, abort
+  ld a, b
+  cp a, 0
+  ret z ; we're out of steam
+
+  ; if hl collides with geometry, abort
+  call framedMapCollisionCheck
+  jr nz, .noCollision
+
+  ; we mark this collision so that we will skip future
+  ; checks against this tile
+.markCollision
+  ld [hl], $FF
+  ret
+.noCollision
+
+  ; if this address is out of bounds, abort
+  ld de, NavigationMapEnd
+  call addressIsGreaterEqual
+  ret nc ; out of bounds
+
+  ld de, NavigationMap
+  call addressIsGreaterEqual
+  ret c ; out of bounds
+
+  ld a, b ; recover value
+  ld [hl], a ; fill cell
+
+  ret
+
+/** 
+ * @param hl - address of current center cell
+ */
+breadthFirstRecursivelyFloodFillNavigationMap:
+  ; we abort immediately if we have already visited this cell
+  ld a, [hl]
+  and a, VISITED_MASK
+  ret nz
+
+  ; or if the cell is zero
+  ld a, [hl]
+  cp a, 0
+  ret z
+
+  ; or if the cell is FF
+  cp a, $FF
+  ret z
+
+  ; otherwise we mark the cell visited
+  ld a, [hl]
+  ld b, VISITED_MASK
+  or a, b
+  ld [hl], a
+
+  ; then we fill the neighbours
+
+  ; decrement the value
+  ld a, [hl]
+  and a, VALUE_MASK
+  dec a
+  ld b, a ; we keep the value in b because it is safe
+
+  ; try to fill each surrounding cell
+  push hl
+  inc hl
+  call tryFillCell
+  pop hl
+
+  push hl
+  dec hl
+  call tryFillCell
+  pop hl
+
+  push hl
+  ld de, 20
+  add hl, de
+  call tryFillCell
+  pop hl
+
+  push hl
+  ld de, 20
+  call subHLDE
+  call tryFillCell
+  pop hl
+
+  ; now we recurse in each direction
+  push hl
+  inc hl
+  call breadthFirstRecursivelyFloodFillNavigationMap
+  pop hl
+
+  push hl
+  dec hl
+  call breadthFirstRecursivelyFloodFillNavigationMap
+  pop hl
+
+  push hl
+  ld de, 20
+  add hl, de
+  call breadthFirstRecursivelyFloodFillNavigationMap
+  pop hl
+
+  push hl
+  ld de, 20
+  call subHLDE
+  call breadthFirstRecursivelyFloodFillNavigationMap
+  pop hl
+
+  ret
+
+  ; try to recurse into each surrounding cell
 
   ; if the center cell already has a value, abort
   ld a, [hl]
