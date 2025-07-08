@@ -12,6 +12,14 @@ DEF VALUE_MASK EQU %00001111
 NavigationMap: ds NAVIGATION_MAP_HEIGHT * NAVIGATION_MAP_WIDTH
 NavigationMapEnd:
 
+; the size of the navigation map will be 4 * (triangle of size n - 1) + 1
+; so the queue only needs to hold the frontier which is (n - 1) * 4
+; I'm keeping this constant just because I like it, we don't actually need it
+DEF NAVIGATION_DIAMOND_SIZE EQU (4 * ((FLOOD_MAX * (FLOOD_MAX - 1)) / 2)) + 1
+
+NavigationMapQueue: ds (FLOOD_MAX - 1) * 4
+NavigationMapQueueTop: ds 2 ; pointer to the top
+
 SECTION "NavigationMap", ROM0
 
 clearNavigationMap:
@@ -37,14 +45,66 @@ clearNavigationMap:
 floodFillNavigationMap:
   call clearNavigationMap
   ; convert player world position to address
+  call initSimpleQueue
   call getNavigationMapAddressByWorldPosition
 
-  ; run flood fill recursively
-  ; terminating whenever a address is outside the map
+  ; enqueue the address
+  ld b, FLOOD_MAX
+  call tryFillCell
+  call markVisitedCell
+  call enqueueSimpleQueue
+
+.loop
+  ; pop an address from the queue
+  ; if the queue is empty, end
+  call dequeueSimpleQueue
+  jr z, .done
+
+  ld b, [hl] ; get the value
+  dec b ; ready to mark the next group of cells
+  jr z, .loop ; no need to continue from this cell
+
+  ; otherwise we mark the cell visited
+
+  ; then we fill the neighbours
+
+  ; decrement the value
+  ld a, [hl]
+  and a, VALUE_MASK
+  dec a
+  ld b, a ; we keep the value in b because it is safe
+
+  ; four adjacent tiles
+
+  ; call tryFillCell
+  ; if we fail to fill the cell we do not enqueu
+  ; call z, enqueue
+
+.done
+
+
+
   
-  ld a, FLOOD_MAX
-  ld [hl], a ; prime the recursion
-  call breadthFirstRecursivelyFloodFillNavigationMap
+  ;ld a, FLOOD_MAX
+  ;ld [hl], a ; prime the recursion
+  ;call breadthFirstRecursivelyFloodFillNavigationMap
+
+  ret
+
+; @param hl - address
+; @return a - value
+getValueCell:
+  ld a, [hl]
+  and a, VALUE_MASK
+
+  ret
+
+; @param hl - address to mark visited
+markVisitedCell: 
+  ld a, [hl]
+  ld b, VISITED_MASK
+  or a, b
+  ld [hl], a
 
   ret
 
@@ -153,17 +213,18 @@ recursivelyFloodFillNavigationMap:
 
 /** 
  * @param b - value to use
- * @param hl - address of cell to fill */
+ * @param hl - address of cell to fill 
+ * @return z - failed to fill */
 tryFillCell:
   ; if the cell already has a value, abort
   ld a, [hl]
   cp a, 0
-  ret nz ; cell has been touched
+  jr nz, .abort ; cell has been touched
 
   ; if a is already 0, abort
   ld a, b
   cp a, 0
-  ret z ; we're out of steam
+  jr z, .abort ; we're out of steam
 
   ; if hl collides with geometry, abort
   call framedMapCollisionCheck
@@ -173,7 +234,8 @@ tryFillCell:
   ; checks against this tile
 .markCollision
   ld [hl], $FF
-  ret
+  jr .abort
+
 .noCollision
 
   ; if this address is out of bounds, abort
@@ -187,6 +249,12 @@ tryFillCell:
 
   ld a, b ; recover value
   ld [hl], a ; fill cell
+
+  ret
+
+.abort
+  ld a, 0
+  cp a, 0 ; return z
 
   ret
 
@@ -329,6 +397,21 @@ breadthFirstRecursivelyFloodFillNavigationMap:
   call recursivelyFloodFillNavigationMap
   pop hl
   pop af
+
+  ret
+
+/** 
+ * @param hl - address 
+ * @param de - upper bound 
+ * @return z - hl greater equal de */
+addressIsEqual:
+  ld a, h
+  cp d
+  ret nz
+
+  ld a, l
+  cp e
+  ret nz
 
   ret
 

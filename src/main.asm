@@ -131,6 +131,7 @@ EntryPoint:
 
 INCLUDE "helpers.inc"
 INCLUDE "player.inc"
+INCLUDE "simple-queue.inc"
 INCLUDE "monster.inc"
 INCLUDE "graphics.inc"
 INCLUDE "input.inc"

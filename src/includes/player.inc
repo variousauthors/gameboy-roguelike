@@ -65,7 +65,7 @@ doTurnPlayer:
 
   ; detect whether the player actually _did_
   ; anything... and pass the turn
-  call floodFillNavigationMap
+  ; call floodFillNavigationMap
 
   call passTurnPlayer
 
