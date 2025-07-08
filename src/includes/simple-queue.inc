@@ -30,22 +30,31 @@ isEmptySimpleQueue:
 
   ret
 
-; @param a - element to insert
+; @param hl - element to insert (2 bytes)
 enqueueSimpleQueue:
-  ; write it
+  push hl
+  push hl
+
+  ; get the address in the queue to write to
   ld hl, writePointerSimpleQueue
   call dereferencePointer
 
+  pop de
+
+  ; write two bytes
+  ld a, d
+  ld [hli], a
+  ld a, e
   ld [hli], a
 
-  ; advance the write pointer
-  ; assumes we never reach the end before re-init
   ld de, writePointerSimpleQueue
   call updatePointer
 
+  pop hl
+
   ret
 
-; @return a - element in the queue
+; @return hl - next element (2 bytes)
 ; @return z - queue empty
 dequeueSimpleQueue:
   call isEmptySimpleQueue
@@ -54,10 +63,21 @@ dequeueSimpleQueue:
   ld hl, readPointerSimpleQueue
   call dereferencePointer
 
-  ld a, [hli]
+  ; we have to adjust the readpointer
+  ; before we get the value to return
+  ; because of register pressure
+  push hl
 
+  inc hl
+  inc hl ; advance the read pointer
   ld de, readPointerSimpleQueue
   call updatePointer
+
+  ; recover the address of the return value in the queue
+  pop hl
+
+  ; we want to return the actual address
+  call dereferencePointer
 
   ret
 

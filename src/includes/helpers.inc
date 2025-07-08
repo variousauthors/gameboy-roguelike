@@ -214,7 +214,7 @@ dereferencePointer:
 
   ret
 
-; @param hl - address
+; @param hl - new address
 ; @param de - pointer
 updatePointer:
   ld a, h
