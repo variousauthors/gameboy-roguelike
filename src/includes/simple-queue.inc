@@ -7,11 +7,17 @@ readPointerSimpleQueue: ds 2
 writePointerSimpleQueue: ds 2
 
 ; is a queue of addresses
-SimpleQueue: ds 10
+; for now we need the queue to hold the whole diamond
+; later we will replace the internals with a ring buffer
+; and it will be smaller
+DEF INITIAL_VALUE EQU $6
+DEF QUEUE_SIZE EQU (4 * ((INITIAL_VALUE * (INITIAL_VALUE - 1)) / 2)) + 1
+SimpleQueue: ds QUEUE_SIZE
 SimpleQueueEnd:
 
 Section "SimpleQueue", ROM0
 
+; resets the read and write pointers
 initSimpleQueue:
   ld hl, SimpleQueue
   ld de, readPointerSimpleQueue

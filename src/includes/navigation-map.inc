@@ -64,30 +64,49 @@ floodFillNavigationMap:
   dec b ; ready to mark the next group of cells
   jr z, .loop ; no need to continue from this cell
 
-  ; otherwise we mark the cell visited
+  ; then we fill, mark, and enqueue the neighbours
 
-  ; then we fill the neighbours
+  push af
+  push hl
+  inc hl
+  call tryFillCell
+  call markVisitedCell
+  call enqueueSimpleQueue
+  pop hl
+  pop af
 
-  ; decrement the value
-  ld a, [hl]
-  and a, VALUE_MASK
-  dec a
-  ld b, a ; we keep the value in b because it is safe
+  push af
+  push hl
+  dec hl
+  call tryFillCell
+  call markVisitedCell
+  call enqueueSimpleQueue
+  pop hl
+  pop af
 
-  ; four adjacent tiles
+  push af
+  push hl
+  ld de, 20
+  add hl, de
+  call tryFillCell
+  call markVisitedCell
+  call enqueueSimpleQueue
+  pop hl
+  pop af
 
-  ; call tryFillCell
-  ; if we fail to fill the cell we do not enqueu
-  ; call z, enqueue
+  push af
+  push hl
+  ld de, 20
+  call subHLDE
+  call tryFillCell
+  call markVisitedCell
+  call enqueueSimpleQueue
+  pop hl
+  pop af
+
+  jr .loop
 
 .done
-
-
-
-  
-  ;ld a, FLOOD_MAX
-  ;ld [hl], a ; prime the recursion
-  ;call breadthFirstRecursivelyFloodFillNavigationMap
 
   ret
 
