@@ -241,4 +241,15 @@ clearMemory:
 
   ret
 
+; @param a - number
+; @return |a|
+absA:
+  bit 7, a
+  jr z, .skipNegate
+  dec a
+  cpl
+.skipNegate
+
+  ret
+
 ENDC

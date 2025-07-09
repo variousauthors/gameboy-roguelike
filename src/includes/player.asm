@@ -1,8 +1,8 @@
 IF !DEF(PLAYER_INC)
 DEF PLAYER_INC EQU 1
 
-DEF PLAYER_INITIAL_Y EQU 13
-DEF PLAYER_INITIAL_X EQU 7
+DEF PLAYER_INITIAL_Y EQU 12
+DEF PLAYER_INITIAL_X EQU 6
 
 SECTION "PlayerState", WRAM0
 
@@ -67,7 +67,10 @@ doTurnPlayer:
   ; anything... and pass the turn
   call floodFillNavigationMap
 
-  call passTurnPlayer
+  ld a, 0
+  cp a, 1 ; return nz
+  
+  ret
 
 .noInput
   ret

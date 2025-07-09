@@ -31,6 +31,7 @@ Main:
   halt
 
   call drawPlayer
+  call drawMonsters
 
   ld hl, CurrentTurnFunction
   call dereferencePointer
@@ -92,6 +93,7 @@ EntryPoint:
   call clearMemory
 
   call initPlayer
+  call initMonsters
 
   ; Initialize global variables
   ld a, 0

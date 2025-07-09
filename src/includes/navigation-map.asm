@@ -5,7 +5,7 @@ SECTION "NavigationMapState", WRAM0
 
 DEF NAVIGATION_MAP_WIDTH EQU 20
 DEF NAVIGATION_MAP_HEIGHT EQU 18
-DEF FLOOD_MAX EQU $6
+DEF FLOOD_MAX EQU $5
 DEF VISITED_MASK EQU %10000000
 DEF VALUE_MASK EQU %00001111
 
@@ -46,6 +46,7 @@ floodFillNavigationMap:
   call clearNavigationMap
   ; convert player world position to address
   call initSimpleQueue
+  call getPlayerWorldPosition
   call getNavigationMapAddressByWorldPosition
 
   ; enqueue the address
@@ -124,9 +125,18 @@ floodFillNavigationMap:
 
 ; @param hl - address
 ; @return a - value
+; @return z - no value
 getValueCell:
   ld a, [hl]
+  cp a, $FF ; collision, return zero
+  jr z, .collision
+
   and a, VALUE_MASK
+  ret
+
+.collision
+  ld a, 0
+  cp a, 0
 
   ret
 
@@ -467,7 +477,6 @@ addressIsGreaterEqual:
 ; @param c: X
 ; @return hl: map address
 getNavigationMapAddressByWorldPosition:
-  call getPlayerWorldPosition
   call getTileAddressByWorldPosition
   ld hl, NavigationMap
   add hl, de
