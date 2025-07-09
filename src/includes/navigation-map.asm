@@ -60,8 +60,8 @@ floodFillNavigationMap:
   call dequeueSimpleQueue
   jr z, .done
 
-  ld b, [hl] ; get the value
-  dec b ; ready to mark the next group of cells
+  call getValueCell
+  dec a
   jr z, .loop ; no need to continue from this cell
 
   ; then we fill, mark, and enqueue the neighbours
@@ -69,18 +69,24 @@ floodFillNavigationMap:
   push af
   push hl
   inc hl
+  ld b, a
   call tryFillCell
+  jr z, .skip1
   call markVisitedCell
   call enqueueSimpleQueue
+.skip1
   pop hl
   pop af
 
   push af
   push hl
   dec hl
+  ld b, a
   call tryFillCell
+  jr z, .skip2
   call markVisitedCell
   call enqueueSimpleQueue
+.skip2
   pop hl
   pop af
 
@@ -88,9 +94,12 @@ floodFillNavigationMap:
   push hl
   ld de, 20
   add hl, de
+  ld b, a
   call tryFillCell
+  jr z, .skip3
   call markVisitedCell
   call enqueueSimpleQueue
+.skip3
   pop hl
   pop af
 
@@ -98,9 +107,12 @@ floodFillNavigationMap:
   push hl
   ld de, 20
   call subHLDE
+  ld b, a
   call tryFillCell
+  jr z, .skip4
   call markVisitedCell
   call enqueueSimpleQueue
+.skip4
   pop hl
   pop af
 

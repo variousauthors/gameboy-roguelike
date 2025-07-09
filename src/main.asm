@@ -1,4 +1,4 @@
-INCLUDE "hardware.inc"
+INCLUDE "hardware.asm"
 
 DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
@@ -129,12 +129,12 @@ EntryPoint:
   jp Main
 
 
-INCLUDE "helpers.inc"
-INCLUDE "player.inc"
-INCLUDE "simple-queue.inc"
-INCLUDE "monster.inc"
-INCLUDE "graphics.inc"
-INCLUDE "input.inc"
-INCLUDE "map-utils.inc"
-INCLUDE "navigation-map.inc"
-INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0.inc"
+INCLUDE "helpers.asm"
+INCLUDE "player.asm"
+INCLUDE "simple-queue.asm"
+INCLUDE "monster.asm"
+INCLUDE "graphics.asm"
+INCLUDE "input.asm"
+INCLUDE "map-utils.asm"
+INCLUDE "navigation-map.asm"
+INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0.asm"

@@ -99,7 +99,7 @@ function getSubmapReducer(width, height) {
 
 function toMapBuilderInput(rawMapData, id, x, y) {
   return {
-    filename: `${id}-y${y}-x${x}-data.inc`,
+    filename: `${id}-y${y}-x${x}-data.asm`,
     include: toIncludeName(id, y, x), // TO_SNAKE_CONSTANT_CASE
     name: toMapName(id, y, x), // toCamelCase
     height: 18,

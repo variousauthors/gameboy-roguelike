@@ -31,6 +31,13 @@ initSimpleQueue:
 
 ; @param z - queue is empty
 isEmptySimpleQueue:
+  ld hl, readPointerSimpleQueue
+  call dereferencePointer
+  ld d, h
+  ld e, l
+  ld hl, writePointerSimpleQueue
+  call dereferencePointer
+
   call addressIsEqual
   ret z
 
@@ -67,6 +74,7 @@ dequeueSimpleQueue:
   ret z
 
   ld hl, readPointerSimpleQueue
+  ld de, writePointerSimpleQueue
   call dereferencePointer
 
   ; we have to adjust the readpointer
