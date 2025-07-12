@@ -134,6 +134,7 @@ EntryPoint:
 INCLUDE "helpers.asm"
 INCLUDE "player.asm"
 INCLUDE "simple-queue.asm"
+INCLUDE "OMA-ring-buffer.asm"
 INCLUDE "monster.asm"
 INCLUDE "graphics.asm"
 INCLUDE "input.asm"
