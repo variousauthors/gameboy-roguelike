@@ -3,6 +3,7 @@ DEF PLAYER_INC EQU 1
 
 DEF PLAYER_INITIAL_Y EQU 12
 DEF PLAYER_INITIAL_X EQU 6
+DEF PLAYER_INITIAL_HP EQU 3
 
 SECTION "PlayerState", WRAM0
 
@@ -11,6 +12,8 @@ playerWorldY: db
 
 playerWorldNextX: db
 playerWorldNextY: db
+
+playerHP: db
 
 SECTION "Player", ROM0
 
@@ -59,12 +62,14 @@ doTurnPlayer:
   jr z, .abortPlayerTurn
 
   ; check for monster
+  call getPlayerWorldNextPosition
+  call tryHitMonster
+  jr z, .didHitMonster
 
   ; update player pos
   call applyMoveIntentPlayer
 
-  ; detect whether the player actually _did_
-  ; anything... and pass the turn
+  ; update the monster navigation map
   call floodFillNavigationMap
 
   ld a, 0
@@ -75,8 +80,64 @@ doTurnPlayer:
 .noInput
   ret
 
+.didHitMonster
+  call resetMoveIntentPlayer
+
+  ld a, 0
+  cp a, 1 ; return nz, we did not "abort"
+
+  ret
+
 .abortPlayerTurn
   call resetMoveIntentPlayer
+
+  ret
+
+; @param b,c - y,x world position
+; @return z - hit monster
+tryHitMonster:
+  ld hl, MonsterPositions
+  ld a, MonsterPositionsEnd - MonsterPositions
+  ld d, a
+  ld e, 0 ; index of monster
+
+.loop
+  ; compare y
+  ld a, [hli]
+  cp b
+  jr nz, .next
+
+  ; compare x
+  ld a, [hli]
+  cp c
+  jr z, .found
+
+.next
+  inc e ; index of next monster
+  dec d
+  dec d ; increment past 2 positions
+  jr z, .notFound
+  jr .loop
+
+.found
+  ; hit that monster
+  ; seek to monster hp
+  ld hl, MonsterHPs
+  ld a, e
+  call addAToHL
+
+  ld a, [hl]
+  dec a
+  ld [hl], a
+
+  ld a, 1
+  dec a
+
+  ret
+
+.notFound
+  ld a, 2
+  dec a ; set nz
 
   ret
 
@@ -176,6 +237,9 @@ initPlayer:
   ld a, PLAYER_INITIAL_X
   ld [playerWorldX], a
   ld [playerWorldNextX], a
+
+  ld a, PLAYER_INITIAL_HP
+  ld [playerHP], a
 
   ret
 

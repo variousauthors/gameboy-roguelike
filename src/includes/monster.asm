@@ -4,20 +4,40 @@ DEF MONSTER_INC EQU 1
 SECTION "MonsterState", WRAM0
 
 MonsterPositions: ds 2
+MonsterPositionsEnd:
 MonsterNextPositions: ds 2
+MonsterHPs: ds 2
 
 SECTION "Monster", ROM0
 
 initMonsters: 
-  ld a, 8
+  ld a, 9
   ld [MonsterPositions], a
   ld [MonsterNextPositions], a
   ld a, 4
   ld [MonsterPositions + 1], a
   ld [MonsterNextPositions + 1], a
+
+  ld a, 2
+  ld [MonsterHPs], a
+
   ret
 
 drawMonsters:
+  ; if monster is dead zero it out
+  ld a, [MonsterHPs]
+  cp 0
+  jr nz, .draw
+
+  ld hl, _OAMRAM + 4
+  ld [hli], a
+  ld [hli], a
+  ld [hli], a
+  ld [hli], a
+
+  ret
+
+.draw
   ; draw monster sprite
   ld a, [MonsterPositions]
   inc a
@@ -41,6 +61,7 @@ drawMonsters:
   ld a, 0
   ld [hli], a
   ld [hli], a
+
   ret
 
 recordMoveIntentMonster:
