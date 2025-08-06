@@ -38,7 +38,7 @@ isEmptySimpleQueue:
   ld hl, writePointerSimpleQueue
   call dereferencePointer
 
-  call addressIsEqual
+  call isEqualAddress
   ret z
 
   ret

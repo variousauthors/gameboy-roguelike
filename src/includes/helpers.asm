@@ -252,4 +252,62 @@ absA:
 
   ret
 
+/** 
+ * @param hl - address 
+ * @param de - upper bound 
+ * @return nc - hl greater equal de */
+isGreaterEqualAddress:
+  ld a, h
+  cp d
+  ret c
+
+  ld a, l
+  cp e
+  ret c
+
+  ret
+
+
+/** 
+ * @param hl - address 
+ * @param de - address
+ * @return z - hl equal de */
+isEqualAddress:
+  ld a, h
+  cp d
+  ret nz
+
+  ld a, l
+  cp e
+  ret nz
+
+  ret
+
+/** 
+ * @param hl - address of pointer
+ * @param de - address of pointer
+ * @return z - hl equal de 
+ * @post this dereferences the pointers so deal with it 
+ */
+isEqualPointer:
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ld a, [de]
+  inc de
+  ld e, [de]
+  ld d, a
+
+  ld a, h
+  cp d
+  ret nz
+
+  ld a, l
+  cp e
+  ret nz
+
+  ret
+
+
 ENDC
