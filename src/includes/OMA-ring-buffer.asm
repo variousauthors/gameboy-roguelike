@@ -5,6 +5,7 @@ SECTION "OAMRingBufferState", WRAM0
 
 writeOAMRingBuffer: ds 2
 readOAMRingBuffer: ds 2
+endOAMRingBuffer: ds 2
 
 DEF _OAMRAM_END EQU $FEA0
 

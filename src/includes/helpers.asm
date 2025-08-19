@@ -283,31 +283,4 @@ isEqualAddress:
 
   ret
 
-/** 
- * @param hl - address of pointer
- * @param de - address of pointer
- * @return z - hl equal de 
- * @post this dereferences the pointers so deal with it 
- */
-isEqualPointer:
-  ld a, [hl+]
-  ld l, [hl]
-  ld h, a
-
-  ld a, [de]
-  inc de
-  ld e, [de]
-  ld d, a
-
-  ld a, h
-  cp d
-  ret nz
-
-  ld a, l
-  cp e
-  ret nz
-
-  ret
-
-
 ENDC

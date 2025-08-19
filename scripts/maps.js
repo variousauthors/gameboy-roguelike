@@ -1,3 +1,20 @@
+/*
+In Pyxel create a map with size that is multiples of the GB screen size 20 wide by 18 high
+the topmost layer should be the map data
+add two more layers:
+- "objects" for placing things like NPCs that activate when you bump them...
+
+There should be no more than 16 tiles
+- at the moment we have to include graphics for events
+  but maybe later we can "export tiles as separate images" and export
+  16+ tiles, with those having indexes higher than 16 being references to
+  objects, defined separately...
+  OR we can just use indexes higher than 16 to refer to objects... hmm
+
+export "tilemap" as json
+export "tileset" as png
+*/
+
 const IN_DIR = "./assets/prototype";
 const OUT_DIR = "./src/includes/maps";
 
@@ -16,10 +33,14 @@ jsonsInDir.forEach((file) => {
   assert(json.tileshigh % 18 == 0, "tileshigh is not a mulitple of 18");
   assert(json.tileswide % 20 == 0, "tileswide is not a mulitple of 20");
 
-  // grid of maps
+  const tilemapLayer = json.layers[0];
+  assert(
+    tilemapLayer.name !== "objects",
+    "objects layer must not be first layer!"
+  );
 
   const content = json.layers[0].tiles
-    .reduce(getSubmapReducer(20, 18), [])
+    .reduce(getSubmapReducer(20, 18, json), [])
     .reduce((acc, rowOfSubmaps, y) => {
       acc.push(
         rowOfSubmaps.map((singleSubmap, x) => {
@@ -50,6 +71,10 @@ ${mapObject.name}TileMap:
 ${mapObject.content}
 ${mapObject.name}TileMapEnd:
 
+initTileMapObjects:
+${mapObject.objects}
+  ret
+
 ENDC
   `;
 }
@@ -79,19 +104,27 @@ function toHex(n) {
   return `$${n.toString(16).toUpperCase().padStart(2, "0")}`;
 }
 
-function getSubmapReducer(width, height) {
+function getSubmapReducer(width, height, json) {
+  // grid of maps
+  const objectsLayer = json.layers.find((layer) => layer.name == "objects");
+
   return function assignTileToSubmap(submaps, tile) {
     // determine which submap this tile goes into with y, x and modulo
-    const i = (tile.x / 20) | 0;
-    const j = (tile.y / 18) | 0;
-    const x = tile.x % 20;
-    const y = tile.y % 18;
+    const i = (tile.x / width) | 0;
+    const j = (tile.y / height) | 0;
+    const x = tile.x % width;
+    const y = tile.y % height;
 
     if (!submaps[j]) submaps[j] = [];
     if (!submaps[j][i]) submaps[j][i] = [];
     if (!submaps[j][i][y]) submaps[j][i][y] = [];
 
-    submaps[j][i][y][x] = tile.tile;
+    submaps[j][i][y][x] = {
+      x,
+      y,
+      tile: tile.tile,
+      object: objectsLayer.tiles[tile.x + tile.y * json.tileswide].tile,
+    };
 
     return submaps;
   };
@@ -106,8 +139,25 @@ function toMapBuilderInput(rawMapData, id, x, y) {
     width: 20,
     content: rawMapData
       .map((mapRow) => {
-        return `  db ${mapRow.map(toHex).join(", ")}`;
+        return `  db ${mapRow
+          .map(({ tile }) => tile)
+          .map(toHex)
+          .join(", ")}`;
       })
+      .join("\n"),
+    objects: rawMapData
+      .map((mapRow) => {
+        return mapRow
+          .filter(({ object }) => object !== -1)
+          .map(
+            ({ x, y, object }) =>
+              `  ld b, ${y}\n  ld c, ${x}\n  ld a, ${toHex(
+                object
+              )}\n  call initMapObject\n`
+          )
+          .join("\n");
+      })
+      .filter((mapRow) => mapRow.length)
       .join("\n"),
   };
 }
