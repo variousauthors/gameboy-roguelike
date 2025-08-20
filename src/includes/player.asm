@@ -199,7 +199,7 @@ recordMoveIntentPlayer:
 
 drawPlayer:
   ; draw player sprite
-  ld hl, _OAMRAM
+  ld hl, _RAM
 
   ld a, [playerWorldY]
   inc a

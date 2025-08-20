@@ -29,7 +29,7 @@ drawMonsters:
   cp 0
   jr nz, .draw
 
-  ld hl, _OAMRAM + 4
+  ld hl, _RAM + 4
   ld [hli], a
   ld [hli], a
   ld [hli], a
@@ -46,7 +46,7 @@ drawMonsters:
   sla a
   sla a
 
-  ld hl, _OAMRAM + 4
+  ld hl, _RAM + 4
   ld [hli], a
 
   ld a, [MonsterPositions + 1]
@@ -55,7 +55,7 @@ drawMonsters:
   sla a
   sla a
 
-  ld hl, _OAMRAM + 5
+  ld hl, _RAM + 5
   ld [hli], a
 
   ld a, 0

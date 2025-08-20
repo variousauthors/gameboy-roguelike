@@ -55,23 +55,38 @@ jsonsInDir.forEach((file) => {
   // write tilemap data
   content.forEach((mapInclude) => {
     fs.writeFileSync(
-      `${OUT_DIR}/${mapInclude.filename}`,
-      build(mapInclude).trim()
+      `${OUT_DIR}/${mapInclude.filename}-data.asm`,
+      buildMapData(mapInclude).trim()
+    );
+
+    fs.writeFileSync(
+      `${OUT_DIR}/${mapInclude.filename}-init.asm`,
+      buildMapInit(mapInclude).trim()
     );
   });
 });
 
-function build(mapObject) {
+function buildMapData(mapObject) {
   return `
-IF !DEF(${mapObject.include}_INC)
-DEF ${mapObject.include}_INC EQU 1
+IF !DEF(${mapObject.include}_DATA_INC)
+DEF ${mapObject.include}_DATA_INC EQU 1
 
 ${mapObject.name}TileMap:
   ; db ${mapObject.height}, ${mapObject.width} -- all maps are 18w x 20h
 ${mapObject.content}
 ${mapObject.name}TileMapEnd:
 
-initTileMapObjects:
+ENDC
+  `;
+}
+
+function buildMapInit(mapObject) {
+  return `
+IF !DEF(${mapObject.include}_INIT_INC)
+DEF ${mapObject.include}_INIT_INC EQU 1
+
+  ; this is the body of a subroutine, the name of
+  ; which is defined in a separate file
 ${mapObject.objects}
   ret
 
@@ -132,7 +147,7 @@ function getSubmapReducer(width, height, json) {
 
 function toMapBuilderInput(rawMapData, id, x, y) {
   return {
-    filename: `${id}-y${y}-x${x}-data.asm`,
+    filename: `${id}-y${y}-x${x}`,
     include: toIncludeName(id, y, x), // TO_SNAKE_CONSTANT_CASE
     name: toMapName(id, y, x), // toCamelCase
     height: 18,

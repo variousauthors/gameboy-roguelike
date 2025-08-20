@@ -1,5 +1,5 @@
-IF !DEF(HOUSE_1BPP_NO_GRID_BW_Y1_X0_INC)
-DEF HOUSE_1BPP_NO_GRID_BW_Y1_X0_INC EQU 1
+IF !DEF(HOUSE_1BPP_NO_GRID_BW_Y1_X0_DATA_INC)
+DEF HOUSE_1BPP_NO_GRID_BW_Y1_X0_DATA_INC EQU 1
 
 House1bppNoGridBwY1X0TileMap:
   ; db 18, 20 -- all maps are 18w x 20h
@@ -22,9 +22,5 @@ House1bppNoGridBwY1X0TileMap:
   db $05, $05, $05, $06, $05, $05, $00, $08, $00, $00, $05, $06, $05, $05, $05, $05, $05, $05, $05, $05
   db $05, $05, $05, $05, $05, $00, $00, $08, $00, $05, $05, $05, $05, $05, $05, $05, $06, $05, $05, $05
 House1bppNoGridBwY1X0TileMapEnd:
-
-initTileMapObjects:
-
-  ret
 
 ENDC

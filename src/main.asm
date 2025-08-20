@@ -1,4 +1,5 @@
 INCLUDE "hardware.asm"
+INCLUDE "dma.asm"
 
 DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
@@ -16,7 +17,8 @@ CurrentTurnFunction: dw
 ; null terminated list of function pointers
 TurnFunctions: ds 4 + 2
 
-SECTION "vblank_interrupt", ROM0[$0040]
+SECTION "vblank", ROM0[$0040]
+  jp DMA_ROUTINE
   reti
 
 SECTION "Header", ROM0[$100]
@@ -76,6 +78,10 @@ passTurn:
   ret
 
 EntryPoint:
+  di
+
+  dma_Copy2HRAM	; sets up routine from dma.inc that updates sprites
+
 	; Shut down audio circuitry
 	ld a, 0
 	ld [rNR52], a

@@ -1,6 +1,11 @@
 IF !DEF(TEST_MAP_INC)
 DEF TEST_MAP_INC EQU 1
 
+; @TODO this file _should_ be generated once the first time
+; we build a map... and then maintained manually after that
+; just set up the weird naming, the metadata, the map data include etc...
+; then manually maintain the tiles, and the palettes
+
 Section "House1bppNoGridBwY0X0Map", ROM0
 
 Start: ; marks the "initial map"
@@ -8,9 +13,10 @@ House1bppNoGridBwY0X0Map:
   db HIGH(House1bppNoGridBwY0X0MapTileset), LOW(House1bppNoGridBwY0X0MapTileset), 
   db HIGH(House1bppNoGridBwY0X0MapTilesetMetadata), LOW(House1bppNoGridBwY0X0MapTilesetMetadata), 
   db HIGH(House1bppNoGridBwY0X0MapDMGBGPalettes), LOW(House1bppNoGridBwY0X0MapDMGBGPalettes), 
+
+; these files are generated
 House1bppNoGridBwY0X0MapData:
-; this file will be generated
-INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0-data.inc"
+INCLUDE "maps/house-1bpp-no-grid-bw-y0-x0-data.asm"
 
 House1bppNoGridBwY0X0MapTileset:
 db EMPTY_TILE, FLOWER_TILE, GRASS_TILE, ROAD_TILE, SIGN_TILE, TREE_ONE_TILE, TREE_TWO_TILE, WALL_TILE

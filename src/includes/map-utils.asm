@@ -3,6 +3,9 @@ DEF MAP_INC EQU 1
 
 SECTION "MapVariables", WRAM0
 
+; for setting up sprites (could move this elsewhere)
+currentSpriteOffset: ds 1 ; offset into _RAM of size 4 bytes 
+
 CURRENT_MAP_HIGH_BYTE: ds 1
 CURRENT_MAP_LOW_BYTE: ds 1
 
@@ -332,6 +335,10 @@ getCurrentMapTileAddressByWorldPosition:
 ; @param hl - address of current map
 ; @return void CURRENT_MAP pointer is set to hl
 setCurrentMap:
+  ; reset the sprite offset for map objects
+  ld a, 0
+  ld [currentSpriteOffset], a
+
   ; set the current map
   ld de, CURRENT_MAP_HIGH_BYTE
   ld a, h
@@ -435,6 +442,26 @@ getPaletteFromMapMetadata:
 
   ret
 
+; @param hl - address of map
+; @return hl - address of map object init subroutine
+getInitMapObjectsSubroutine:
+  ; advance to the palette pointer
+  ; @DEPENDS on MAP_METADATA_SIZE
+
+  ; need to advance passed the tileset
+  ; need to advance passed the tileset metadata
+  inc hl
+  inc hl
+  inc hl
+  inc hl
+
+  ; dereference the pointer
+  ld a, [hl+]
+  ld l, [hl]
+  ld h, a
+
+  ret
+
 ; @param hl - tileset 
 setCurrentMapTilesetMetadata:
   ld de, CURRENT_MAP_TILESET_METADATA_HIGH_BYTE
@@ -487,6 +514,13 @@ setCurrentMapPalette:
 initCurrentMap:
   ld hl, Start
   call setCurrentMap
+
+  ret
+
+; @param a - the tile to use
+; @param bc - y, x world position of the object
+; @param hl - the sprite to fill
+initMapObject:
 
   ret
 
