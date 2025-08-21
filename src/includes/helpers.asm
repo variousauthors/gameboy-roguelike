@@ -10,7 +10,18 @@ IsWallTile:
   ret z
   ret
 
+; @param hl - source
+; @param de - destination
+; @param c - length
+memCopyC:
+  ld a, [hli]
+  ld [de], a
+  inc de
+  dec c
+  jp nz, memCopyC
+  ret
 
+; @WARNING this uses de as source
 ; @param de - source
 ; @param hl - destination
 ; @param bc - length
@@ -202,6 +213,18 @@ addAToHL:
 	adc h ; a'' = a' + h + c ; what!?
 	sub l ; l' here is a + l
 	ld h, a ; so h is getting h + c yikes!
+
+  ret
+
+; @param a - a
+; @param hl - hl
+; @return hl - hl + a
+addAToDE:
+  add e ; a = a + l
+	ld e, a ; l' = a'
+	adc d ; a'' = a' + h + c ; what!?
+	sub e ; l' here is a + l
+	ld d, a ; so h is getting h + c yikes!
 
   ret
 

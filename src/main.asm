@@ -34,6 +34,7 @@ Main:
 
   call drawPlayer
   call drawMonsters
+  ; call drawCrates
 
   ld hl, CurrentTurnFunction
   call dereferencePointer
@@ -100,6 +101,9 @@ EntryPoint:
 
   call initPlayer
   call initMonsters
+  ; call initCrates
+
+  call resetNextSpriteIndex
 
   ; Initialize global variables
   ld a, 0
@@ -139,6 +143,7 @@ EntryPoint:
 
 INCLUDE "helpers.asm"
 INCLUDE "player.asm"
+INCLUDE "crate.asm"
 INCLUDE "simple-queue.asm"
 INCLUDE "OMA-ring-buffer.asm"
 INCLUDE "monster.asm"
