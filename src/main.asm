@@ -8,6 +8,11 @@ DEF BLANK_TILE EQU $08
 DEF GAME_TURN_PLAYER EQU $01
 DEF GAME_TURN_MONSTER EQU $02
 
+SECTION "OAMData", WRAM0[_RAM], ALIGN[8]
+Sprites: ; OAM Memory is for 40 sprites with 4 bytes per sprite
+  ds 40 * 4
+.end:
+
 SECTION "GameState", WRAM0
 
 wGameTurn: db
@@ -19,7 +24,6 @@ TurnFunctions: ds 4 + 2
 
 SECTION "vblank", ROM0[$0040]
   jp DMA_ROUTINE
-  reti
 
 SECTION "Header", ROM0[$100]
 

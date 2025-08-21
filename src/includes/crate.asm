@@ -31,7 +31,7 @@ getNextSpriteAddress:
   sla a
   sla a
 
-  ld de, SpriteRam
+  ld de, _RAM
   call addAToDE
 
   ret
