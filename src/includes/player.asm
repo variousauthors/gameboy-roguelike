@@ -199,7 +199,7 @@ recordMoveIntentPlayer:
 
 drawPlayer:
   ; draw player sprite
-  ld hl, _RAM
+  call getNextSpriteAddress
 
   ld a, [playerWorldY]
   inc a
@@ -207,18 +207,21 @@ drawPlayer:
   sla a
   sla a
   sla a
-  ld [hli], a
+  ld [de], a
+  inc de
 
   ld a, [playerWorldX]
   inc a ; add 8 sprites start off-screen
   sla a
   sla a
   sla a
-  ld [hli], a
+  ld [de], a
+  inc de
 
   ld a, 0
-  ld [hli], a
-  ld [hli], a
+  ld [de], a
+  inc de
+  ld [de], a
 
   ret
 

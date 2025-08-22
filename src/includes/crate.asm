@@ -15,8 +15,24 @@ CrateState:
 SECTION "Crate", ROM0
 
 resetNextSpriteIndex: 
-  ld a, 2
+  ld a, 0
   ld [nextSpriteIndex], a
+
+  ret
+
+; @return hl - holds the address of the next empty sprite
+getNextSpriteAddressHL: 
+  ld a, [nextSpriteIndex]
+  inc a
+  ld [nextSpriteIndex], a
+  dec a
+
+  ; a * 4
+  sla a
+  sla a
+
+  ld hl, _RAM
+  call addAToHL
 
   ret
 

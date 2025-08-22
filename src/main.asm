@@ -39,9 +39,9 @@ SECTION "Header", ROM0[$100]
 Main:
   halt
 
-  call drawPlayer
-  call drawMonsters
   call resetNextSpriteIndex
+  call drawPlayer
+  ; call drawMonsters
   call drawCrates
 
   ld hl, CurrentTurnFunction
