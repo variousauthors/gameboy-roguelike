@@ -15,7 +15,7 @@ CrateState:
 SECTION "Crate", ROM0
 
 resetNextSpriteIndex: 
-  ld a, 0
+  ld a, 2
   ld [nextSpriteIndex], a
 
   ret
@@ -85,7 +85,7 @@ drawCrate:
 
   ; it is active so draw
   call getNextSpriteAddress
-  call memCopyC
+  call drawSprite
 
   ret
 

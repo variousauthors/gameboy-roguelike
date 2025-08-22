@@ -12,13 +12,35 @@ IsWallTile:
 
 ; @param hl - source
 ; @param de - destination
-; @param c - length
-memCopyC:
+; draws four bytes and advances hl, de
+; handles conversion of world position to sprite position
+drawSprite:
+  ld a, [hli]
+  inc a ; convert world y to sprite y
+  inc a
+  sla a
+  sla a
+  sla a
+  ld [de], a
+  inc de
+
+  ld a, [hli]
+  inc a ; convert world x to sprite x
+  inc a
+  sla a
+  sla a
+  sla a
+  ld [de], a
+  inc de
+
   ld a, [hli]
   ld [de], a
   inc de
-  dec c
-  jp nz, memCopyC
+
+  ld a, [hli]
+  ld [de], a
+  inc de
+
   ret
 
 ; @WARNING this uses de as source

@@ -15,6 +15,9 @@ Sprites: ; OAM Memory is for 40 sprites with 4 bytes per sprite
 
 SECTION "GameState", WRAM0
 
+watX: db
+watY: db
+
 wGameTurn: db
 
 ; pointer to function pointer
@@ -38,7 +41,8 @@ Main:
 
   call drawPlayer
   call drawMonsters
-  ; call drawCrates
+  call resetNextSpriteIndex
+  call drawCrates
 
   ld hl, CurrentTurnFunction
   call dereferencePointer
@@ -103,9 +107,13 @@ EntryPoint:
   ld hl, _OAMRAM
   call clearMemory
 
+  ld a, 10
+  ld [watX], a
+  ld [watY], a
+
   call initPlayer
   call initMonsters
-  ; call initCrates
+  call initCrates
 
   call resetNextSpriteIndex
 
