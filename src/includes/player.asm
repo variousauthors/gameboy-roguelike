@@ -61,6 +61,14 @@ doTurnPlayer:
   call checkCollisionMap
   jr z, .abortPlayerTurn
 
+  call getPlayerWorldNextPosition
+  call checkCollisionCrates
+  jr z, .abortPlayerTurn
+  ; call z, canCrateMove
+  ; jr nz, .abortPlayerTurn
+
+  ; call recordMoveIntentCrate
+
   ; check for monster
   call getPlayerWorldNextPosition
   call tryHitMonster

@@ -26,7 +26,6 @@ drawSprite:
 
   ld a, [hli]
   inc a ; convert world x to sprite x
-  inc a
   sla a
   sla a
   sla a
@@ -229,6 +228,7 @@ crash:
 ; @param a - a
 ; @param hl - hl
 ; @return hl - hl + a
+; @cost 5 cycles
 addAToHL:
   add l ; a = a + l
 	ld l, a ; l' = a'

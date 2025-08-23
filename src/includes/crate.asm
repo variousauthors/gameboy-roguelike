@@ -133,9 +133,64 @@ isBlockedCrate:
 recordMoveIntentCrate:
   ret
 
-; @param bc - player world next y, x
-; @return z - there is a collision
 checkCollisionCrate:
+  push hl
+  ld a, [hli] ; active
+  cp a, 0
+  jr z, .inactive
+
+  ; check y, x
+  ld a, [hli]
+  cp a, b
+  jp nz, .noCollision
+
+  ld a, [hli]
+  cp a, c
+  jp nz, .noCollision
+
+  ; collision!
+  pop hl
+
+  ret
+
+.noCollision
+  pop hl
+  ret
+
+.inactive
+  ; skip forward and return nz
+  pop hl
+
+  ld a, 1 ; set nz
+  or a
+
+  ret
+
+; @param bc - entity world next y, x
+; @return z - there is a collision
+; @return hl - address of colliding crate
+checkCollisionCrates:
+  ; iterate over crates and find a colliding crate
+  ld hl, CrateState
+  ld d, CRATE_COUNT
+
+.loop
+  call checkCollisionCrate
+  jp z, .collision ; we have a collision
+
+  ; otherwise advance past this crate
+  ld a, CRATE_SIZE
+  call addAToHL
+
+  dec d
+  jr nz, .loop
+
+.noCollision
+  ld a, 1
+  or a
+  ret
+
+.collision
 
   ret
 
