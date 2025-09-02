@@ -43,8 +43,10 @@ turnOnLCD:
 	; During the first (blank) frame, initialize display registers
 	ld a, %11100100
 	ld [rBGP], a
-  ld a, %11100100
+  ld a, %11110000
   ld [rOBP0], a
+  ld a, %00000000
+  ld [rOBP1], a
   ret
 
 ENDC

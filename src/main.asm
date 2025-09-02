@@ -10,14 +10,13 @@ currentTurn: ds 1
 DEF BLACK_TURN EQU 0
 DEF WHITE_TURN EQU 1
 
-DEF BLACK_STONE EQU $03
-DEF WHITE_STONE EQU $02
+DEF BLACK_STONE EQU $02
+DEF WHITE_STONE EQU $03
 
 ; the stone to add or remove board y, x
 blackStone: ds 2
 whiteStone: ds 2
-blackCapture: ds 2
-whiteCapture: ds 2
+deleteStone: ds 2
 
 SECTION "vblank_interrupt", ROM0[$0040]
   reti
@@ -38,6 +37,7 @@ EntryPoint:
 
   call ZeroOutWorkRAM
 
+  ; init turn
   ld a, BLACK_TURN
   ld [currentTurn], a
 
@@ -94,7 +94,13 @@ Main:
 
   nop
 
+  ; DRAWING STUFF
+
+  call updatePlayerSprite
   call updateBoard
+
+  ; DONE DRAWING
+
   call resetActions
 
   call UpdateKeys
@@ -124,16 +130,15 @@ SECTION "Board", ROM0
 resetActions:
   ld a, 0
   ld [blackStone], a
-  ld [blackCapture], a
   ld [whiteStone], a
-  ld [whiteCapture], a
+  ld [deleteStone], a
   ret
 
 ; @return z - no action
 RecordAction:
   ld a, [wNewKeys]
   and a, PADF_A
-  ret z
+  jr z, .checkB
 
   ld a, [_OAMRAM]
   srl a
@@ -170,13 +175,43 @@ RecordAction:
   ld a, c
   ld [whiteStone + 1], a
   inc a ; to return nz
+
   ret
 
-; @param a - stone to place
-; @param bc - y, x
-placeStone:
-  push af
-  ; multiply b by 32
+.checkB
+  ld a, [wNewKeys]
+  and a, PADF_B
+  ret z
+
+  ld a, [_OAMRAM]
+  srl a
+  srl a
+  srl a
+  dec a
+  dec a ; y offset by 16
+  ld b, a
+
+  ld a, [_OAMRAM + 1]
+  srl a
+  srl a
+  srl a
+  dec a ; x offset by 8
+  ld c, a
+
+  ; record delete stone
+  ; do not pass turn
+  ld a, b
+  ld [deleteStone], a
+
+  ld a, c
+  ld [deleteStone + 1], a
+  ld a, 0
+  cp a ; ret z this is a delete
+  ret
+
+; @param bc - y, x world space
+; @return hl - VRAM address
+getAddressFromPosition:
   ld h, 0
   ld l, b
 
@@ -195,6 +230,16 @@ placeStone:
 
   ld a, c
   call addAToHL
+
+  ret
+
+; @param a - stone to place
+; @param bc - y, x
+placeStone:
+  push af
+
+  ; multiply b by 32
+  call getAddressFromPosition
 
   pop af
   ld [hl], a
@@ -219,15 +264,30 @@ updateBoard:
 .blackStone
   ld a, [blackStone]
   cp a, 0
-  jr z, .done
+  jr z, .deleteStone
 
   ld b, a
   ld a, [blackStone + 1]
   cp a, 0
-  jr z, .done
+  jr z, .deleteStone
 
   ld c, a
   ld a, BLACK_STONE
+
+  call placeStone
+
+.deleteStone
+  ld a, [deleteStone]
+  cp a, 0
+  jr z, .done
+
+  ld b, a
+  ld a, [deleteStone + 1]
+  cp a, 0
+  jr z, .done
+
+  ld c, a
+  ld a, 0
 
   call placeStone
 

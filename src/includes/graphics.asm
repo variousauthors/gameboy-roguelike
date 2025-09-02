@@ -27,7 +27,7 @@ BoardTiles:
   ; black piece
 	dw `13333311
 	dw `33333331
-	dw `33033331
+	dw `33333331
 	dw `33333333
 	dw `33333331
 	dw `33333331
@@ -69,14 +69,25 @@ Tilemap:
 TilemapEnd:
 
 PlayerSprite:
+  ; stone (pallette swap for color)
 	dw `03333300
-	dw `33333330
-	dw `33133330
-	dw `33333330
-	dw `33333330
-	dw `33333330
-	dw `33333330
+	dw `30000030
+	dw `30000030
+	dw `30000030
+	dw `30000030
+	dw `30000030
 	dw `03333300
+	dw `00000000
+
+  ; cross-hair
+	dw `00000000
+	dw `00030000
+	dw `00030000
+	dw `03333300
+	dw `00030000
+	dw `00030000
+	dw `00000000
+	dw `00000000
 PlayerSpriteEnd:
 
 PieceTiles:
