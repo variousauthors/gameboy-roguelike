@@ -414,6 +414,7 @@ SECTION "Input Variables", WRAM0
 wCurKeys: db
 wNewKeys: db
 
-INCLUDE "src/includes/helpers.asm"
-INCLUDE "src/includes/graphics.asm"
-INCLUDE "src/includes/player.inc"
+INCLUDE "helpers.asm"
+INCLUDE "graphics.asm"
+INCLUDE "player.asm"
+INCLUDE "dma.asm"
