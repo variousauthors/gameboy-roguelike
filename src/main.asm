@@ -80,9 +80,9 @@ ClearOam:
 
   ; init player sprite
   ld hl, Sprites
-  ld a, (8 * 8) + 16
+  ld a, (8 * 9) + 16
   ld [hli], a
-  ld a, (8 * 10) + 8
+  ld a, (8 * 9) + 8
   ld [hli], a
   ld a, 0
   ld [hli], a
