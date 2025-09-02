@@ -104,30 +104,9 @@ doTurnPlayer:
 ; @param b,c - y,x world position
 ; @return z - hit monster
 tryHitMonster:
-  ld hl, MonsterPositions
-  ld a, MonsterPositionsEnd - MonsterPositions
-  ld d, a
-  ld e, 0 ; index of monster
+  call getMonsterByPosition
+  jr nz, .notFound
 
-.loop
-  ; compare y
-  ld a, [hli]
-  cp b
-  jr nz, .next
-
-  ; compare x
-  ld a, [hli]
-  cp c
-  jr z, .found
-
-.next
-  inc e ; index of next monster
-  dec d
-  dec d ; increment past 2 positions
-  jr z, .notFound
-  jr .loop
-
-.found
   ; hit that monster
   ; seek to monster hp
   ld hl, MonsterHPs

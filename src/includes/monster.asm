@@ -3,12 +3,55 @@ DEF MONSTER_INC EQU 1
 
 SECTION "MonsterState", WRAM0
 
-MonsterPositions: ds 2
-MonsterPositionsEnd:
-MonsterNextPositions: ds 2
+DEF MONSTER_COUNT EQU 4
+
+; position active, y, x
+DEF MONSTER_POS_SIZE EQU 3
+MonsterPositions: ds MONSTER_COUNT * MONSTER_POS_SIZE
+
+; position active, y, x
+DEF MONSTER_NEXT_POS_SIZE EQU 3
+MonsterNextPositions: ds MONSTER_COUNT * MONSTER_NEXT_POS_SIZE
+
 MonsterHPs: ds 2
 
 SECTION "Monster", ROM0
+
+; @param bc - world y, x position
+; @return a - index of monster
+; @return z - monster exists
+getMonsterByPosition: 
+  ld hl, MonsterPositions
+  ld d, MONSTER_COUNT
+  ld e, 0 ; index of the monster
+
+.loop
+  ld a, e
+  call addAToHL
+
+  ld a, [hli] ; active
+  cp a, 0
+  jr z, .next
+
+  ld a, [hli]
+  cp b
+  jr nz, .next
+
+  ; compare x
+  ld a, [hli]
+  cp c
+  jr nz, .next
+
+  ; found!
+  ld a, d ; return z and the index
+  ret
+
+.next
+  dec d
+  inc e
+  jr nz, .loop
+
+  ret
 
 initMonsters: 
   ld a, 9
