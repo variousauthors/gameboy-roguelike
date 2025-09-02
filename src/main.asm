@@ -12,6 +12,7 @@ DEF WHITE_TURN EQU 1
 
 DEF BLACK_STONE EQU $02
 DEF WHITE_STONE EQU $03
+DEF HOSHI_TILE EQU $04
 
 ; the stone to add or remove board y, x
 blackStone: ds 2
@@ -286,12 +287,50 @@ updateBoard:
   cp a, 0
   jr z, .done
 
+  ; we might need to place a hoshi
   ld c, a
-  ld a, 0
+
+  call getEmptyBoardTileForPosition
 
   call placeStone
 
 .done
+
+  ret
+
+; @param bc
+; @return a - the tile
+; bc is preserved
+getEmptyBoardTileForPosition:
+  ld a, c
+  cp a, 4
+  jp z, .maybeHoshi
+
+  cp a, 9
+  jp z, .maybeHoshi
+
+  cp a, 14
+  jp z, .maybeHoshi
+
+  ld a, 0 ; no hoshi
+  ret
+
+.maybeHoshi
+  ld a, b
+  cp a, 4
+  jr z, .hoshi
+
+  cp a, 9
+  jr z, .hoshi
+
+  cp a, 14
+  jr z, .hoshi
+
+  ld a, 0
+  ret
+
+.hoshi
+  ld a, HOSHI_TILE
 
   ret
 
