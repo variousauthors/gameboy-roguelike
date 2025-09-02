@@ -1,8 +1,16 @@
-INCLUDE "hardware.inc"
+INCLUDE "src/includes/hardware.asm"
 
 DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
 DEF BLANK_TILE EQU $08
+
+SECTION "GameState", WRAM0
+
+; the stone to add or remove board y, x
+blackStone: ds 2
+whiteStone: ds 2
+blackCapture: ds 2
+whiteCapture: ds 2
 
 SECTION "vblank_interrupt", ROM0[$0040]
   reti
@@ -21,10 +29,12 @@ EntryPoint:
 	; Do not turn the LCD off outside of VBlank
   call turnOffLCD
 
+  call ZeroOutWorkRAM
+
 	; Copy the tile data
-	ld de, Tiles
+	ld de, BoardTiles
 	ld hl, $9000
-	ld bc, TilesEnd - Tiles
+	ld bc, BoardTilesEnd - BoardTiles
   call Memcopy
 
 	; Copy the tilemap
@@ -74,13 +84,94 @@ Main:
 
   nop
 
+  call updateBoard
+  call resetActions
+
   call UpdateKeys
 
+  call RecordAction
   call playerMove
 
   jp Main
 
+SECTION "Board", ROM0
+
+resetActions:
+  ld a, 0
+  ld [blackStone], a
+  ld [blackCapture], a
+  ld [whiteStone], a
+  ld [whiteCapture], a
+  ret
+
+updateBoard:
+  ld a, [whiteStone]
+  cp a, 0
+  jr z, .blackStone
+
+  ld b, a
+  ld a, [whiteStone + 1]
+  cp a, 0
+  jr z, .blackStone
+
+  ld c, a
+
+  ; place white stone
+  ld hl, 9800
+
+  ld a, b
+  sla a
+  sla a
+  sla a
+  sla a
+  sla a ; x 32
+  call addAToHL
+
+  ld a, c
+  call addAToHL
+
+  ld [hl], $03
+
+.blackStone
+
+  ret
+
+; @param a - a
+; @param hl - hl
+; @return hl - hl + a
+addAToHL:
+  add l ; a = a + l
+	ld l, a ; l' = a'
+	adc h ; a'' = a' + h + c ; what!?
+	sub l ; l' here is a + l
+	ld h, a ; so h is getting h + c yikes!
+
+  ret
+
 SECTION "Input", ROM0
+
+RecordAction:
+  ld a, [wNewKeys]
+  and a, PADF_A
+  ret z
+
+  ld a, [_OAMRAM]
+  sra a
+  sra a
+  sra a
+  dec a
+  ld [whiteStone], a
+
+  ld a, [_OAMRAM + 1]
+  sra a
+  sra a
+  sra a
+  dec a
+  dec a
+  ld [whiteStone + 1], a
+
+  ret
+
 UpdateKeys:
   ; poll half the controller
   ld a, P1F_GET_BTN
@@ -116,11 +207,22 @@ UpdateKeys:
 .knownret
   ret
 
+ZeroOutWorkRAM:
+  ld hl, _RAM
+  ld de, $DFFF - _RAM ; number of bytes to write
+.write
+  ld a, $00
+  ld [hli], a
+  dec de
+  ld a, d
+  or e
+  jr nz, .write
+  ret
 
 SECTION "Input Variables", WRAM0
 wCurKeys: db
 wNewKeys: db
 
-INCLUDE "helpers.inc"
-INCLUDE "graphics.inc"
-INCLUDE "player.inc"
+INCLUDE "src/includes/helpers.asm"
+INCLUDE "src/includes/graphics.asm"
+INCLUDE "src/includes/player.asm"
