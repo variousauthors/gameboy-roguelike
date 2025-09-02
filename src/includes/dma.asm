@@ -1,6 +1,4 @@
-
 IF !DEF(DMA_INC)
-; don't re-include this file if it's already been INCLUDE'd
 DEF DMA_INC EQU 1
 
 SECTION "mem_Copy", ROM0
@@ -23,7 +21,7 @@ mem_Copy::
 
 DEF DMA_ROUTINE	EQU $FF80
 
-dma_Copy2HRAM: MACRO
+MACRO dma_Copy2HRAM
 	IF !DEF(MEMORY_ASM)
 	ENDC
 ; copies the dmacode to HIRAM. dmacode will get run each Vblank,
@@ -49,6 +47,6 @@ dma_Copy2HRAM: MACRO
 	ld	bc, .dmaend\@ - .dmacode\@
 	; copies BC # of bytes from source (HL) to destination (DE)
 	call	mem_Copy
-	ENDM
+ENDM
 
-	ENDC	; end definition of DMA.inc file
+ENDC	; end definition of DMA.inc file

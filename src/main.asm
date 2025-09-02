@@ -1,4 +1,5 @@
-INCLUDE "src/includes/hardware.asm"
+INCLUDE "hardware.asm"
+INCLUDE "dma.asm"
 
 DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
@@ -24,8 +25,8 @@ blackStone: ds 2
 whiteStone: ds 2
 deleteStone: ds 2
 
-SECTION "vblank_interrupt", ROM0[$0040]
-  reti
+SECTION "vblank", ROM0[$0040]
+  jp DMA_ROUTINE
 
 SECTION "Header", ROM0[$100]
 
@@ -34,12 +35,15 @@ SECTION "Header", ROM0[$100]
 	ds $150 - @, 0 ; Make room for the header
 
 EntryPoint:
+  di
 	; Shut down audio circuitry
 	ld a, 0
 	ld [rNR52], a
 
 	; Do not turn the LCD off outside of VBlank
   call turnOffLCD
+
+  dma_Copy2HRAM
 
   call ZeroOutWorkRAM
 
@@ -49,19 +53,19 @@ EntryPoint:
 
 	; Copy the tile data
 	ld de, BoardTiles
-	ld hl, $9000
+	ld hl, _VRAM9000
 	ld bc, BoardTilesEnd - BoardTiles
   call Memcopy
 
 	; Copy the tilemap
 	ld de, Tilemap
-	ld hl, $9800
+	ld hl, _SCRN0
 	ld bc, TilemapEnd - Tilemap
   call Memcopy
 
   ; copy the player sprite
 	ld de, PlayerSprite
-	ld hl, $8000
+	ld hl, _VRAM8000
 	ld bc, PlayerSpriteEnd - PlayerSprite
   call Memcopy
 
@@ -75,7 +79,7 @@ ClearOam:
   jp nz, ClearOam
 
   ; init player sprite
-  ld hl, _OAMRAM
+  ld hl, Sprites
   ld a, (8 * 8) + 16
   ld [hli], a
   ld a, (8 * 10) + 8
@@ -156,7 +160,7 @@ RecordAction:
   cp a, WHITE_STONE
   ret z
 
-  ld a, [_OAMRAM]
+  ld a, [Sprites]
   srl a
   srl a
   srl a
@@ -164,7 +168,7 @@ RecordAction:
   dec a ; y offset by 16
   ld b, a
 
-  ld a, [_OAMRAM + 1]
+  ld a, [Sprites + 1]
   srl a
   srl a
   srl a
@@ -199,7 +203,7 @@ RecordAction:
   and a, PADF_B
   ret z
 
-  ld a, [_OAMRAM]
+  ld a, [Sprites]
   srl a
   srl a
   srl a
@@ -207,7 +211,7 @@ RecordAction:
   dec a ; y offset by 16
   ld b, a
 
-  ld a, [_OAMRAM + 1]
+  ld a, [Sprites + 1]
   srl a
   srl a
   srl a
@@ -417,4 +421,3 @@ wNewKeys: db
 INCLUDE "helpers.asm"
 INCLUDE "graphics.asm"
 INCLUDE "player.asm"
-INCLUDE "dma.asm"

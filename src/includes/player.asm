@@ -1,6 +1,9 @@
 IF !DEF(PLAYER_INC)
 DEF PLAYER_INC EQU 1
 
+DEF BOARD_DIM EQU 17
+DEF GUTTER_WIDTH EQU 1
+
 updatePlayerSprite:
   ; set the sprite
   call getPlayerPosition
@@ -16,43 +19,43 @@ updatePlayerSprite:
 .blackStone
   ; set sprite to cross-hair
   ld a, 1
-  ld [_OAMRAM + 2], a
+  ld [Sprites + 2], a
 
   ; set palette to white
-  ld a, [_OAMRAM + 3]
+  ld a, [Sprites + 3]
   set 4, a
-  ld [_OAMRAM + 3], a
+  ld [Sprites + 3], a
   ret
 
 .whiteStone
   ; set sprite to cross-hair
   ld a, 1
-  ld [_OAMRAM + 2], a
+  ld [Sprites + 2], a
 
   ; set palette to black
-  ld a, [_OAMRAM + 3]
+  ld a, [Sprites + 3]
   res 4, a
-  ld [_OAMRAM + 3], a
+  ld [Sprites + 3], a
   ret
 
 .noStone
   ; set sprite to stone
   ld a, 0
-  ld [_OAMRAM + 2], a
+  ld [Sprites + 2], a
 
   ld a, [currentTurn]
   cp a, BLACK_TURN
   jr z, .blackPalette
 
-  ld a, [_OAMRAM + 3]
+  ld a, [Sprites + 3]
   set 4, a
-  ld [_OAMRAM + 3], a
+  ld [Sprites + 3], a
   ret
 
 .blackPalette
-  ld a, [_OAMRAM + 3]
+  ld a, [Sprites + 3]
   res 4, a
-  ld [_OAMRAM + 3], a
+  ld [Sprites + 3], a
 
   ret
   ; palette swap based on current turn
@@ -60,7 +63,7 @@ updatePlayerSprite:
 
 ; @return bc - y, x
 getPlayerPosition:
-  ld a, [_OAMRAM]
+  ld a, [Sprites]
   srl a
   srl a
   srl a
@@ -68,7 +71,7 @@ getPlayerPosition:
   dec a
   ld b, a
 
-  ld a, [_OAMRAM + 1]
+  ld a, [Sprites + 1]
   srl a
   srl a
   srl a
@@ -83,14 +86,14 @@ playerMove:
   and a, PADF_LEFT
   jp z, .checkRight
 .left
-  ld a, [_OAMRAM + 1]
+  ld a, [Sprites + 1]
   ld b, 8
   sub b
 
   ; if we moved out of bounds, reset the position
-  cp a, 8
+  cp a, GUTTER_WIDTH * 8
   ret z
-  ld [_OAMRAM + 1], a
+  ld [Sprites + 1], a
   ret
 
 .checkRight
@@ -99,14 +102,14 @@ playerMove:
   jp z, .checkUp
 
 .right
-  ld a, [_OAMRAM + 1]
+  ld a, [Sprites + 1]
   ld b, 8
   add b
 
   ; if we moved out of bounds, reset the position
-  cp a, 160
+  cp a, (GUTTER_WIDTH + BOARD_DIM + 1) * 8
   ret z
-  ld [_OAMRAM + 1], a
+  ld [Sprites + 1], a
   ret
 
 .checkUp
@@ -115,14 +118,14 @@ playerMove:
   jp z, .checkDown
 
 .up
-  ld a, [_OAMRAM]
+  ld a, [Sprites]
   ld b, 8
   sub b
 
   ; if we moved out of bounds, reset the position
   cp a, 16
   ret z
-  ld [_OAMRAM], a
+  ld [Sprites], a
   ret
 
 .checkDown
@@ -131,14 +134,14 @@ playerMove:
   jp z, .done
 
 .down
-  ld a, [_OAMRAM]
+  ld a, [Sprites]
   ld b, 8
   add b
 
   ; if we moved out of bounds, reset the position
-  cp a, 152
+  cp a, 160
   ret z
-  ld [_OAMRAM], a
+  ld [Sprites], a
   ret
 
 .done
