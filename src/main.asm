@@ -60,9 +60,9 @@ ClearOam:
 
   ; init player sprite
   ld hl, _OAMRAM
-  ld a, 128 + 16
+  ld a, 8 + 16
   ld [hli], a
-  ld a, 16 + 8
+  ld a, 8 + 8
   ld [hli], a
   ld a, 0
   ld [hli], a
@@ -104,6 +104,28 @@ resetActions:
   ld [whiteCapture], a
   ret
 
+RecordAction:
+  ld a, [wNewKeys]
+  and a, PADF_A
+  ret z
+
+  ld a, [_OAMRAM]
+  srl a
+  srl a
+  srl a
+  dec a
+  dec a ; y offset by 16
+  ld [whiteStone], a
+
+  ld a, [_OAMRAM + 1]
+  srl a
+  srl a
+  srl a
+  dec a ; x offset by 8
+  ld [whiteStone + 1], a
+
+  ret
+
 updateBoard:
   ld a, [whiteStone]
   cp a, 0
@@ -116,16 +138,24 @@ updateBoard:
 
   ld c, a
 
-  ; place white stone
-  ld hl, 9800
 
-  ld a, b
-  sla a
-  sla a
-  sla a
-  sla a
-  sla a ; x 32
-  call addAToHL
+  ; multiply b by 32
+  ld h, 0
+  ld l, b
+
+  add hl, hl
+  add hl, hl
+  add hl, hl
+  add hl, hl
+  add hl, hl ; x32
+
+  ld d, h
+  ld e, l
+
+  ; place white stone
+  ld hl, $9800
+
+  add hl, de
 
   ld a, c
   call addAToHL
@@ -149,28 +179,6 @@ addAToHL:
   ret
 
 SECTION "Input", ROM0
-
-RecordAction:
-  ld a, [wNewKeys]
-  and a, PADF_A
-  ret z
-
-  ld a, [_OAMRAM]
-  sra a
-  sra a
-  sra a
-  dec a
-  ld [whiteStone], a
-
-  ld a, [_OAMRAM + 1]
-  sra a
-  sra a
-  sra a
-  dec a
-  dec a
-  ld [whiteStone + 1], a
-
-  ret
 
 UpdateKeys:
   ; poll half the controller
