@@ -6,6 +6,13 @@ DEF BLANK_TILE EQU $08
 
 SECTION "GameState", WRAM0
 
+currentTurn: ds 1
+DEF BLACK_TURN EQU 0
+DEF WHITE_TURN EQU 1
+
+DEF BLACK_STONE EQU $03
+DEF WHITE_STONE EQU $02
+
 ; the stone to add or remove board y, x
 blackStone: ds 2
 whiteStone: ds 2
@@ -30,6 +37,9 @@ EntryPoint:
   call turnOffLCD
 
   call ZeroOutWorkRAM
+
+  ld a, BLACK_TURN
+  ld [currentTurn], a
 
 	; Copy the tile data
 	ld de, BoardTiles
@@ -60,9 +70,9 @@ ClearOam:
 
   ; init player sprite
   ld hl, _OAMRAM
-  ld a, 8 + 16
+  ld a, (8 * 8) + 16
   ld [hli], a
-  ld a, 8 + 8
+  ld a, (8 * 10) + 8
   ld [hli], a
   ld a, 0
   ld [hli], a
@@ -89,8 +99,23 @@ Main:
 
   call UpdateKeys
 
-  call RecordAction
   call playerMove
+  call RecordAction
+  jr z, Main ; no action it is still the same turn
+
+  ld a, [currentTurn]
+  cp a, BLACK_TURN
+  jr z, .whiteTurn
+
+.blackTurn
+  ld a, BLACK_TURN
+  ld [currentTurn], a
+
+  jp Main
+
+.whiteTurn
+  ld a, WHITE_TURN
+  ld [currentTurn], a
 
   jp Main
 
@@ -104,6 +129,7 @@ resetActions:
   ld [whiteCapture], a
   ret
 
+; @return z - no action
 RecordAction:
   ld a, [wNewKeys]
   and a, PADF_A
@@ -115,14 +141,63 @@ RecordAction:
   srl a
   dec a
   dec a ; y offset by 16
-  ld [whiteStone], a
+  ld b, a
 
   ld a, [_OAMRAM + 1]
   srl a
   srl a
   srl a
   dec a ; x offset by 8
+  ld c, a
+
+  ld a, [currentTurn]
+  cp a, BLACK_TURN
+  jr nz, .whiteTurn
+
+.blackTurn
+  ld a, b
+  ld [blackStone], a
+
+  ld a, c
+  ld [blackStone + 1], a
+  inc a ; to return nz
+  ret
+
+.whiteTurn
+  ld a, b
+  ld [whiteStone], a
+
+  ld a, c
   ld [whiteStone + 1], a
+  inc a ; to return nz
+  ret
+
+; @param a - stone to place
+; @param bc - y, x
+placeStone:
+  push af
+  ; multiply b by 32
+  ld h, 0
+  ld l, b
+
+  add hl, hl
+  add hl, hl
+  add hl, hl
+  add hl, hl
+  add hl, hl ; x32
+
+  ld d, h
+  ld e, l
+
+  ld hl, $9800
+
+  add hl, de
+
+  ld a, c
+  call addAToHL
+
+  pop af
+  ld [hl], a
 
   ret
 
@@ -137,32 +212,26 @@ updateBoard:
   jr z, .blackStone
 
   ld c, a
+  ld a, WHITE_STONE
 
-
-  ; multiply b by 32
-  ld h, 0
-  ld l, b
-
-  add hl, hl
-  add hl, hl
-  add hl, hl
-  add hl, hl
-  add hl, hl ; x32
-
-  ld d, h
-  ld e, l
-
-  ; place white stone
-  ld hl, $9800
-
-  add hl, de
-
-  ld a, c
-  call addAToHL
-
-  ld [hl], $03
+  call placeStone
 
 .blackStone
+  ld a, [blackStone]
+  cp a, 0
+  jr z, .done
+
+  ld b, a
+  ld a, [blackStone + 1]
+  cp a, 0
+  jr z, .done
+
+  ld c, a
+  ld a, BLACK_STONE
+
+  call placeStone
+
+.done
 
   ret
 
