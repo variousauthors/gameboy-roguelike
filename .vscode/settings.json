@@ -1,0 +1,13 @@
+{
+  "[plaintext]": {
+    "editor.fontFamily": "'unscii', monospace",
+    "editor.lineHeight": 1,
+    "editor.fontLigatures": false
+  },
+  "files.associations": {
+    "*.map": "plaintext",
+  },
+    "rgbdsz80.includePath": [
+    "./src/includes"
+  ],
+}

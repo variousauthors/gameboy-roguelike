@@ -4,6 +4,11 @@ DEF BRICK_LEFT EQU $05
 DEF BRICK_RIGHT EQU $06
 DEF BLANK_TILE EQU $08
 
+SECTION "OAMData", WRAM0, ALIGN[8]
+Sprites: ; OAM Memory is for 40 sprites with 4 bytes per sprite
+  ds 40 * 4
+.end:
+
 SECTION "GameState", WRAM0
 
 currentTurn: ds 1
@@ -140,6 +145,16 @@ RecordAction:
   ld a, [wNewKeys]
   and a, PADF_A
   jr z, .checkB
+
+  ; check if there is already a stone there
+  ; and abort
+  call getPlayerPosition
+  call getAddressFromPosition
+  ld a, [hl]
+  cp a, BLACK_STONE
+  ret z
+  cp a, WHITE_STONE
+  ret z
 
   ld a, [_OAMRAM]
   srl a
@@ -401,4 +416,4 @@ wNewKeys: db
 
 INCLUDE "src/includes/helpers.asm"
 INCLUDE "src/includes/graphics.asm"
-INCLUDE "src/includes/player.asm"
+INCLUDE "src/includes/player.inc"
